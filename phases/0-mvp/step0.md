@@ -22,7 +22,9 @@ Next.js 15 프로젝트를 초기화한다.
 3. `/docs/ARCHITECTURE.md`의 디렉토리 구조대로 빈 디렉토리 골격을 만든다 (`src/components/`, `src/types/`, `src/lib/`, `src/services/`). 빈 디렉토리는 git에 남지 않으므로 각 디렉토리에 `.gitkeep`을 두어라.
 4. **`.env.example` 생성** — `/.env`와 **동일한 키 목록**을 값 없이 복사한다. `.env` 파일 자체는 절대 수정하지 마라.
 5. **목업 랜딩 페이지** — `src/app/page.tsx`에 제품명과 한 줄 소개, "로그인" 버튼(아직 동작 안 함) 정도의 최소 화면. 다크 기반 미니멀, 무채색 + 포인트 컬러 1가지. **이 step에서는 다른 화면을 만들지 마라.**
-6. `package.json`의 scripts에 `dev`, `build`, `lint`, `test`가 모두 있어야 한다.
+6. `package.json`의 scripts에 `dev`, `build`, `lint`, `test`, `eval`이 모두 있어야 한다.
+   - `eval`은 step 8에서 실제 Anthropic API를 호출해 분류 품질을 재는 경로다. 이 step에서는 `"eval": "vitest run --passWithNoTests --config vitest.eval.config.ts"`처럼 **자리만 잡아두고**(대상 파일이 없어도 통과하도록) 실제 평가는 step 8에서 채운다.
+   - `test`와 `eval`을 반드시 분리하라. 이유: Stop 훅이 매 턴 `npm test`를 실행하므로, 여기에 실제 API 호출이 섞이면 파일을 고칠 때마다 비용이 나가고 모델 출력이 비결정적이라 무관한 커밋에서 실패한다.
 
 ## Acceptance Criteria
 

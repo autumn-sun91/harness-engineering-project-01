@@ -21,6 +21,8 @@
 
 ## 개발 프로세스
 - CRITICAL: 새 기능 구현 시 반드시 테스트를 먼저 작성하고, 테스트가 통과하는 구현을 작성할 것 (TDD)
+- CRITICAL: `npm test`에서 실제 Anthropic API를 호출하지 않는다. LLM 호출은 모킹한다. 실제 호출이 필요한 분류 품질 검증은 `npm run eval`로 분리한다. 이유: Stop 훅이 매 턴 `lint && build && test`를 실행하므로 비용이 나가고, 모델 출력이 비결정적이라 무관한 커밋에서 실패한다.
+- CRITICAL: 개발 중 실제 카드 명세서를 업로드하지 않는다. 합성 CSV만 쓴다. 이유: Vercel Hobby와 Pro 체험판은 약관상 콘텐츠가 AI 모델 학습에 사용되고 제3자와 공유될 수 있다.
 - 커밋 메시지는 conventional commits 형식을 따를 것 (feat:, fix:, docs:, refactor:)
 - 프로토타입이다. 요청되지 않은 기능·추상화·최적화를 넣지 않는다.
 
@@ -28,4 +30,12 @@
 npm run dev      # 개발 서버
 npm run build    # 프로덕션 빌드
 npm run lint     # ESLint
-npm run test     # 테스트
+npm run test     # 테스트 (LLM 호출은 모킹. 결정적이고 빠르다)
+npm run eval     # 분류 품질 평가 (실제 Anthropic API 호출, 수동 실행)
+
+## 사람이 해야 하는 일 (Claude가 할 수 없음)
+
+- [ ] **Polar production 심사 제출** — step 1(preview 배포) 직후 **즉시** 제출한다. KYC(대표자 신분증 + 셀피)와 Stripe Connect 정산 계좌가 필요하고 **최대 14일** 걸린다. 샌드박스와 production은 분리된 서버라 계정·토큰·상품·시크릿 중 넘어오는 것이 없다. step 14까지 미루면 일정이 2주 밀린다. (ADR-015)
+- [ ] **Vercel Pro 전환** — Polar 승인 직후, **결제를 활성화하기 전에.** Hobby는 약관상 결제 처리가 금지되고, Hobby·Pro 체험판은 콘텐츠가 AI 학습에 쓰일 수 있다. (ADR-014)
+- [ ] **`npm run eval` 라벨링 샘플 정답 검수** — 실제 카드 명세서를 아는 사람이 20~30건의 정답을 확인해야 평가가 의미를 갖는다. 이것이 분류 품질의 상한이다. (ADR-017)
+- [ ] **OAuth 리다이렉트 URL / Polar webhook URL 등록** — step 14의 `summary`에 필요한 URL이 기록된다.
