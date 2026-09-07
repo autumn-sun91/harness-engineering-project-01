@@ -1,0 +1,21 @@
+{
+  "project": "TxAnalyzer",
+  "phase": "0-mvp",
+  "steps": [
+    { "step": 0, "name": "project-setup", "status": "pending" },
+    { "step": 1, "name": "deploy-preview", "status": "pending" },
+    { "step": 2, "name": "core-types", "status": "pending" },
+    { "step": 3, "name": "csv-parser", "status": "pending" },
+    { "step": 4, "name": "analysis-core", "status": "pending" },
+    { "step": 5, "name": "crypto-storage", "status": "pending" },
+    { "step": 6, "name": "supabase-schema", "status": "pending" },
+    { "step": 7, "name": "auth-flow", "status": "pending" },
+    { "step": 8, "name": "llm-analysis", "status": "pending" },
+    { "step": 9, "name": "analyze-api", "status": "pending" },
+    { "step": 10, "name": "dashboard-ui", "status": "pending" },
+    { "step": 11, "name": "billing", "status": "pending" },
+    { "step": 12, "name": "account-settings", "status": "pending" },
+    { "step": 13, "name": "landing-and-legal", "status": "pending" },
+    { "step": 14, "name": "deploy-production", "status": "pending" }
+  ]
+}
