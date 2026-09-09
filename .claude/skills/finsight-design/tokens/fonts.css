@@ -1,0 +1,9 @@
+/* Font substitutes. Finsight Display / Sans / Mono are licensed and were NOT supplied.
+   Inter stands in for Display (400) and Sans (400/500/600/700); JetBrains Mono for Mono (500). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root{
+  --font-display:"Inter","Finsight Display",-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-sans:"Inter","Finsight Sans",-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Finsight Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}

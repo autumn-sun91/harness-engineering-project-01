@@ -1,0 +1,31 @@
+<!-- @dsCard group="Marketing site" viewport="1280x820" name="finsight.com" subtitle="Home, Explore and Sign-up — click through the pill switcher" -->
+<!-- @startingPoint section="Screens" subtitle="Marketing site: dark hero home, asset explore, sign-up" viewport="1280x820" -->
+<!doctype html><html><head><meta charset="utf-8"><title>finsight.com — UI kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" src="home.screen.jsx"></script>
+<script type="text/babel" src="explore.screen.jsx"></script>
+<script type="text/babel" src="signup.screen.jsx"></script>
+<script type="text/babel" data-presets="react">
+function Kit(){
+  const [screen,setScreen]=React.useState('home');
+  const go=(l)=>{if(l==='Individuals')return setScreen('home');if(l==='Cryptocurrencies')return setScreen('explore');if(l==='Company')return setScreen('signup');};
+  return (<div>
+    {screen==='home' && <HomeScreen onNavigate={go} onGo={setScreen}/>}
+    {screen==='explore' && <ExploreScreen onNavigate={go} onGo={setScreen}/>}
+    {screen==='signup' && <SignupScreen onNavigate={go} onGo={setScreen}/>}
+    <div style={{position:'fixed',bottom:16,left:'50%',transform:'translateX(-50%)',display:'flex',gap:8,background:'var(--color-surface-dark)',padding:8,borderRadius:'var(--radius-pill)',zIndex:50}}>
+      <button onClick={()=>setScreen('home')} style={{height:32,padding:'0 14px',border:'none',borderRadius:'var(--radius-pill)',cursor:'pointer',fontFamily:'var(--font-sans)',fontSize:13,fontWeight:600,background:screen==='home'?'var(--color-primary)':'transparent',color:'#fff'}}>Home</button>
+      <button onClick={()=>setScreen('explore')} style={{height:32,padding:'0 14px',border:'none',borderRadius:'var(--radius-pill)',cursor:'pointer',fontFamily:'var(--font-sans)',fontSize:13,fontWeight:600,background:screen==='explore'?'var(--color-primary)':'transparent',color:'#fff'}}>Explore</button>
+      <button onClick={()=>setScreen('signup')} style={{height:32,padding:'0 14px',border:'none',borderRadius:'var(--radius-pill)',cursor:'pointer',fontFamily:'var(--font-sans)',fontSize:13,fontWeight:600,background:screen==='signup'?'var(--color-primary)':'transparent',color:'#fff'}}>Sign up</button>
+    </div>
+  </div>);
+}
+const boot=()=>{ if(window.HomeScreen) ReactDOM.createRoot(document.getElementById('root')).render(<Kit/>); else setTimeout(boot,30); };
+boot();
+</script></body></html>

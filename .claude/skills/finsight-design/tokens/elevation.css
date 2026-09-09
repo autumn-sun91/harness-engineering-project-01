@@ -1,0 +1,5 @@
+:root{
+  /* One shadow tier. Do not add more. */
+  --shadow-soft:0 4px 12px rgba(0,0,0,.04);
+  --shadow-none:none;
+}

@@ -1,0 +1,20 @@
+<!-- @dsCard group="Components" viewport="1280x900" name="Bands" subtitle="Dark hero with layered mockups, CTA band, 6-column footer" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-canvas);padding:0;font-family:var(--font-sans)}#root{display:block}</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { HeroBand, CTABand, Footer, Button, BadgePill, ProductUICard, AssetRow } = window.FinsightDesignSystem_7e1a2b;
+function Demo(){return (<div>
+  <HeroBand eyebrow={<BadgePill tone="dark">Institutional</BadgePill>} headline="Take control of your money"
+    subhead="Buy, sell and hold with an institution built for scrutiny."
+    actions={<><Button size="lg">Get started</Button><Button size="lg" variant="outline-on-dark">Talk to sales</Button></>}
+    mockups={<><ProductUICard rotate={-4} width={220} title="BTC / USD" meta="+2.41%"/><ProductUICard title="Portfolio" meta="$128,402.55" width={340}><AssetRow name="Bitcoin" ticker="BTC" price="$64,204.19" change="+2.41%" divider={false} tone="dark"/></ProductUICard></>}/>
+  <CTABand headline="Ready when you are" subhead="Open an account in minutes." actions={<><Button>Get started</Button><Button variant="outline-on-dark">Contact sales</Button></>}/>
+  <Footer/>
+</div>)}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

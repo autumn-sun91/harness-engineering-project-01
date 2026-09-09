@@ -1,0 +1,24 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Cards" subtitle="Feature card, floating product-UI mockups, pricing tiers" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-canvas);padding:24px;font-family:var(--font-sans)}#root{display:block}</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { FeatureCard, ProductUICard, PricingTierCard, AssetRow, AssetIcon } = window.FinsightDesignSystem_7e1a2b;
+function Demo(){return (<div style={{display:'flex',flexDirection:'column',gap:24}}>
+  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+    <FeatureCard eyebrow="Custody" title="Segregated cold storage" media={<AssetIcon symbol="BTC" size={48} fill="var(--color-accent-yellow)"/>}>Audited controls and insurance on every held asset.</FeatureCard>
+    <PricingTierCard name="Growth" price="$499" cadence="/ month" featured features={['Unlimited API keys','Priority support','99.99% SLA']} cta="Start now"/>
+  </div>
+  <div style={{background:'var(--color-surface-dark)',borderRadius:'var(--radius-xl)',padding:24,display:'flex',gap:16,alignItems:'center'}}>
+    <ProductUICard title="Portfolio" meta="$128,402.55" width={330}>
+      <AssetRow name="Bitcoin" ticker="BTC" price="$64,204.19" change="+2.41%" divider={false} tone="dark"/>
+    </ProductUICard>
+    <ProductUICard rotate={-4} width={200} title="BTC / USD" meta="+2.41%"/>
+  </div>
+</div>)}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

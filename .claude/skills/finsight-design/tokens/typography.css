@@ -1,0 +1,26 @@
+:root{
+  /* Display — Finsight Display, weight 400, negative tracking. Never bold. */
+  --type-display-mega-size:80px;   --type-display-mega-lh:1.0;  --type-display-mega-ls:-2px;
+  --type-display-xl-size:64px;     --type-display-xl-lh:1.0;    --type-display-xl-ls:-1.6px;
+  --type-display-lg-size:52px;     --type-display-lg-lh:1.0;    --type-display-lg-ls:-1.3px;
+  --type-display-md-size:44px;     --type-display-md-lh:1.09;   --type-display-md-ls:-1px;
+  --type-display-sm-size:36px;     --type-display-sm-lh:1.11;   --type-display-sm-ls:-0.5px;
+  --type-display-weight:400;
+
+  /* Titles */
+  --type-title-lg-size:32px;  --type-title-lg-lh:1.13; --type-title-lg-ls:-0.4px; --type-title-lg-weight:400;
+  --type-title-md-size:18px;  --type-title-md-lh:1.33; --type-title-md-weight:600;
+  --type-title-sm-size:16px;  --type-title-sm-lh:1.25; --type-title-sm-weight:600;
+
+  /* Body */
+  --type-body-md-size:16px;   --type-body-md-lh:1.5;  --type-body-md-weight:400;
+  --type-body-strong-weight:700;
+  --type-body-sm-size:14px;   --type-body-sm-lh:1.5;
+  --type-caption-size:13px;   --type-caption-lh:1.5;
+  --type-caption-strong-size:12px; --type-caption-strong-weight:600;
+
+  /* Numeric + interactive */
+  --type-number-size:18px;    --type-number-lh:1.4;   --type-number-weight:500;
+  --type-button-size:16px;    --type-button-lh:1.15;  --type-button-weight:600;
+  --type-nav-size:14px;       --type-nav-lh:1.4;      --type-nav-weight:500;
+}
