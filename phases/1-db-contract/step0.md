@@ -30,6 +30,19 @@
 
 ## 작업
 
+### 0. 로컬 Supabase 초기화 (선행 조건)
+
+`supabase/`에는 `migrations/`만 있고 `config.toml`이 없어 `npx supabase db reset`이 바로 실패한다. 먼저 초기화하라.
+
+```bash
+npx supabase init      # config.toml 생성. 이미 있으면 건너뛴다
+npx supabase start     # 로컬 Postgres 기동 (Docker 필요)
+```
+
+`supabase init`이 기존 `supabase/migrations/` 안의 파일을 덮어쓰지 않는지 확인하라. 덮어쓰려 하면 중단하고 백업 후 진행하라.
+
+pgTAP 테스트를 쓰려면 `config.toml`에서 로컬 DB에 `pgtap` 확장이 활성화되어야 한다. 활성화되어 있지 않으면 `supabase/migrations/`가 아니라 테스트 설정 쪽에서 활성화하라. **`pgtap`을 애플리케이션 마이그레이션(0007)에 넣지 마라. 이유: 테스트 전용 확장이 production 스키마에 딸려 들어간다.**
+
 ### 1. `supabase/migrations/0007_upload_contract_rpcs.sql` 생성
 
 기존 마이그레이션은 **수정하지 말고** 새 파일에 append-only로 작성하라. `0005`를 편집하면 그 위에 쌓인 `0006`과 어긋난다.
@@ -125,6 +138,7 @@ pgTAP으로 아래를 검증한다. `supabase/tests/` 디렉토리는 아직 없
 ## Acceptance Criteria
 
 ```bash
+npx supabase start             # Docker 기반 로컬 Postgres
 npx supabase db reset          # 0005 → 0006 → 0007 순서로 오류 없이 적용
 npx supabase test db           # access.sql 전부 통과
 npm run lint
