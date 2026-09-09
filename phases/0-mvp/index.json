@@ -85,7 +85,10 @@
     {
       "step": 10,
       "name": "dashboard-ui",
-      "status": "pending"
+      "status": "completed",
+      "summary": "서버 직접 조회 기반 대시보드, CSV 드롭존·폴링·재시도, 5개 결과 카드·Free 잠금 티저·히스토리·에러 바운더리를 구현하고 TDD·빌드·테스트를 통과시켰다.",
+      "started_at": "2026-09-09T17:39:16+0900",
+      "completed_at": "2026-09-09T17:50:26+0900"
     },
     {
       "step": 11,

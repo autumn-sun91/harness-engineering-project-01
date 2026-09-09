@@ -1,9 +1,75 @@
 import { redirect } from "next/navigation";
 
 import { signOut } from "../../login/actions";
+import DashboardClient from "../../../components/dashboard/dashboard-client";
 import { createServerSupabaseClient } from "../../../services/supabase/server";
+import type { UploadReport } from "../../../types";
+import type { DashboardUpload, DashboardUploadStatus } from "../../../types/dashboard";
 
-export default async function DashboardPage() {
+const METADATA_COLUMNS = [
+  "id",
+  "user_id",
+  "original_filename",
+  "file_size",
+  "row_count",
+  "skipped_row_count",
+  "status",
+  "error_code",
+  "scope_start",
+  "scope_end",
+  "currency",
+  "retry_count",
+  "uploaded_at",
+  "started_at",
+  "completed_at",
+].join(",");
+
+type MetadataRow = Record<string, unknown>;
+
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function statusValue(value: unknown): DashboardUploadStatus {
+  if (value === "queued" || value === "uploading" || value === "parsing" || value === "analyzing" || value === "partial" || value === "completed" || value === "failed") {
+    return value;
+  }
+  return "failed";
+}
+
+function toDashboardUpload(row: MetadataRow): DashboardUpload {
+  return {
+    id: stringValue(row.id) ?? "",
+    userId: stringValue(row.user_id) ?? "",
+    originalFilename: stringValue(row.original_filename) ?? "이름 없는 파일",
+    fileSize: numberValue(row.file_size),
+    rowCount: numberValue(row.row_count),
+    skippedRowCount: numberValue(row.skipped_row_count),
+    status: statusValue(row.status),
+    errorCode: stringValue(row.error_code),
+    scopeStart: stringValue(row.scope_start),
+    scopeEnd: stringValue(row.scope_end),
+    currency: stringValue(row.currency),
+    retryCount: numberValue(row.retry_count),
+    uploadedAt: stringValue(row.uploaded_at) ?? "",
+    startedAt: stringValue(row.started_at),
+    completedAt: stringValue(row.completed_at),
+  };
+}
+
+function isReportAvailable(status: DashboardUploadStatus): boolean {
+  return status === "completed" || status === "partial";
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ uploadId?: string | string[] }>;
+}) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -13,27 +79,34 @@ export default async function DashboardPage() {
     redirect("/login?next=%2Fdashboard");
   }
 
-  return (
-    <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-8 text-[var(--color-ink)] sm:px-10 lg:px-16">
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-12">
-        <header className="flex items-center justify-between border-b border-[var(--color-hairline-soft)] pb-5">
-          <p className="font-display text-2xl tracking-[-0.04em] text-[var(--color-primary)]">TxAnalyzer</p>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-sm font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
-            >
-              로그아웃
-            </button>
-          </form>
-        </header>
+  const { data } = await supabase
+    .from("csv_uploads")
+    .select(METADATA_COLUMNS)
+    .eq("user_id", user.id)
+    .order("uploaded_at", { ascending: false });
+  const rawData: unknown = data;
+  const rows = Array.isArray(rawData)
+    ? rawData.filter((row): row is MetadataRow => typeof row === "object" && row !== null)
+    : [];
+  const uploads = rows.map(toDashboardUpload).filter((upload) => upload.id.length > 0);
+  const params = searchParams ? await searchParams : {};
+  const requestedUploadId = typeof params.uploadId === "string" ? params.uploadId : null;
+  const selectedUpload = (requestedUploadId ? uploads.find((upload) => upload.id === requestedUploadId) : null) ?? uploads[0] ?? null;
+  let report: UploadReport | null = null;
 
-        <section>
-          <p className="font-mono-ui text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">대시보드</p>
-          <h1 className="mt-5 font-display text-5xl font-normal tracking-[-0.04em]">분석을 시작할 준비가 되었습니다</h1>
-          <p className="mt-6 text-base leading-7 text-[var(--color-body)]">CSV 거래 내역을 업로드하면 이곳에 분석 결과가 표시됩니다.</p>
-        </section>
-      </div>
-    </main>
+  if (selectedUpload && isReportAvailable(selectedUpload.status)) {
+    const result = await supabase.rpc("get_upload_report", { upload_id: selectedUpload.id });
+    if (!result.error && result.data && typeof result.data === "object") {
+      report = result.data as UploadReport;
+    }
+  }
+
+  return (
+    <DashboardClient
+      initialUploads={uploads}
+      initialReport={report}
+      initialUploadId={selectedUpload?.id ?? null}
+      logoutAction={signOut}
+    />
   );
 }
