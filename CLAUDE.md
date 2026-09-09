@@ -1,23 +1,25 @@
 # 프로젝트: TxAnalyzer (가칭, 거래내역 분석 SaaS)
 
 ## 기술 스택
-- Next.js 15 (App Router), 풀스택 (프론트엔드 + API 라우트)
+- Next.js `15.5.24` (App Router), 풀스택 (프론트엔드 + API 라우트)
 - TypeScript strict mode
 - Tailwind CSS
-- Vitest (테스트)
-- Supabase (Auth + Postgres + Storage)
+- Vitest (단위·통합 테스트), Playwright (E2E)
+- Supabase (Auth + Postgres). **Storage는 쓰지 않는다** — 원본 CSV를 보관하지 않기 때문이다.
 - Polar (구독 결제, Merchant of Record)
-- Claude API (거래내역 해석, 단일 LLM 프로바이더)
+- Claude API `claude-sonnet-5` (거래내역 해석, 단일 LLM 프로바이더)
+- Vercel Fluid Compute (Node.js runtime, `maxDuration = 300`)
 
 ## 아키텍처 규칙
-- CRITICAL: 외부 API 호출(Claude, Polar)과 모든 쓰기는 app/api/ 라우트 핸들러에서만 처리한다. 클라이언트 컴포넌트에서 직접 호출 금지. 읽기는 Server Component에서 RLS가 걸린 사용자 컨텍스트 클라이언트로 조회한다.
+- CRITICAL: 업로드된 CSV 원본은 메모리에서만 처리하고 Storage·DB에 저장하지 않는다. 성공·실패 어느 경로에서도 원본과 그 경로가 남아서는 안 된다. 재다운로드와 파싱 전 실패의 재시도는 제공하지 않는다.
+- CRITICAL: 외부 API 호출(Claude, Polar)은 app/api/ 라우트 핸들러와 `after()` 백그라운드 작업에서만 처리한다. 클라이언트 컴포넌트에서 직접 호출 금지. 사용자 요청 경로의 쓰기는 RPC(`reserve_upload`, `transition_upload`, `claim_analysis_retry`, `mark_stale_upload`)를 거치고, `subscriptions`·`csv_uploads`의 직접 INSERT/UPDATE/DELETE는 금지한다.
+- CRITICAL: `transactions`와 `analysis_results`에는 authenticated role의 SELECT 권한을 주지 않는다. 리포트는 security-definer RPC `get_upload_report()`로만 읽는다. 직접 조회가 허용되는 것은 `subscriptions`와 `csv_uploads` metadata뿐이며, RLS가 걸린 사용자 컨텍스트 클라이언트로 읽는다.
 - CRITICAL: Supabase service role 클라이언트는 RLS를 우회하므로 webhook 처리와 계정 삭제에만 사용하고, 해당 경로에서는 소유권을 명시적으로 검사한다.
-- CRITICAL: API 키와 시크릿(Supabase secret key, Anthropic API key, Polar 토큰·webhook 시크릿, 암호화 마스터 키)은 서버 사이드 환경변수로만 쓰고 클라이언트에 노출하지 않는다. 로그에도 남기지 않는다.
-- CRITICAL: 업로드된 CSV 원본은 저장 전 반드시 암호화한다. Storage 경로는 `{user_id}/{uuid}.csv`로 만들고 원본 파일명을 경로에 쓰지 않는다.
-- CRITICAL: 금액은 `numeric(14,2)`로 저장하고, 금액 산술을 LLM에 맡기지 않는다. 집계는 코드로 계산한다.
-- CRITICAL: CSV 입력과 LLM 출력은 모두 신뢰 불가 입력이다. LLM 출력은 Zod 검증 후 플레인 텍스트로만 렌더한다(마크다운·HTML 렌더 금지).
-- CRITICAL: Pro 전용 데이터와 조회 기간 제한은 서버 응답에서 필드를 제외하는 방식으로 게이팅한다. 클라이언트 UI 숨김으로 대체하지 않는다.
-- 컴포넌트는 components/, 타입은 types/ 폴더에 분리한다.
+- CRITICAL: API 키와 시크릿(Supabase secret key, Anthropic API key, Polar 토큰·webhook 시크릿)은 서버 사이드 환경변수로만 쓰고 클라이언트에 노출하지 않는다. 로그에 키·access token·거래 내용·파일 내용을 남기지 않는다.
+- CRITICAL: 금액은 `numeric(14,2)`로 저장하고 JavaScript `number`로 산술하지 않는다(decimal string으로 처리). 금액 산술을 LLM에 맡기지 않고 집계는 코드로 계산한다.
+- CRITICAL: CSV 입력과 LLM 출력은 모두 신뢰 불가 입력이다. LLM 출력은 Structured Outputs와 Zod 양쪽으로 검증한 뒤 플레인 텍스트로만 렌더한다(마크다운·HTML 렌더 금지).
+- CRITICAL: Pro 게이팅과 조회 범위 제한은 DB 함수가 허용 scope(`recent12m`/`full`)와 티저만 반환하는 방식으로 한다. 애플리케이션이 전체 payload를 읽어 클라이언트 UI로 숨기는 방식은 금지한다.
+- 컴포넌트는 components/, 타입은 types/ 폴더에 분리한다. 디자인 토큰과 UI 규칙은 `docs/DESIGN.md`를 따른다.
 
 ## 개발 프로세스
 - CRITICAL: 새 기능 구현 시 반드시 테스트를 먼저 작성하고, 테스트가 통과하는 구현을 작성할 것 (TDD)
