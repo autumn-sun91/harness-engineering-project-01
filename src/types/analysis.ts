@@ -1,6 +1,15 @@
 import type { DecimalString } from "./domain";
 import type { Category } from "./constants";
 
+export interface SummaryStatistics {
+  totalSpending: DecimalString;
+  transactionCount: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  averageDailySpending: DecimalString;
+  averageMonthlySpending: DecimalString;
+}
+
 export interface CategorySpending {
   category: Category;
   totalAmount: DecimalString;
@@ -25,6 +34,7 @@ export interface RecurringPaymentCandidate {
 }
 
 export interface Aggregates {
+  summary: SummaryStatistics;
   categorySpending: CategorySpending[];
   monthlyTrend: MonthlyTrend[];
   recurringPayments: RecurringPaymentCandidate[];

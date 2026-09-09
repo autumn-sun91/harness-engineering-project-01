@@ -70,6 +70,14 @@ describe("core type contracts", () => {
       userId: "user-id",
       payload: {
         aggregates: {
+          summary: {
+            totalSpending: "0.00",
+            transactionCount: 0,
+            periodStart: null,
+            periodEnd: null,
+            averageDailySpending: "0.00",
+            averageMonthlySpending: "0.00",
+          },
           categorySpending: [],
           monthlyTrend: [],
           recurringPayments: [],
