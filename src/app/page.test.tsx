@@ -9,6 +9,7 @@ describe("home page", () => {
 
     expect(markup).toContain("TxAnalyzer");
     expect(markup).toContain("거래 내역을 읽고 소비 흐름을 확인합니다");
+    expect(markup).toContain('href="/login"');
     expect(markup).toContain("로그인");
   });
 });

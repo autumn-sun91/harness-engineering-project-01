@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)]">
@@ -6,12 +8,12 @@ export default function HomePage() {
           <p className="font-display text-2xl tracking-[-0.04em] text-[var(--color-primary)]">
             TxAnalyzer
           </p>
-          <button
-            type="button"
+          <Link
+            href="/login"
             className="h-11 rounded-full bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
           >
             로그인
-          </button>
+          </Link>
         </header>
 
         <section className="flex flex-1 items-center py-24 sm:py-32">

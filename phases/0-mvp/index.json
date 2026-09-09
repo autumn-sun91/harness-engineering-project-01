@@ -53,7 +53,10 @@
     {
       "step": 6,
       "name": "auth-flow",
-      "status": "pending"
+      "status": "completed",
+      "summary": "Google OAuth 로그인·콜백·로그아웃, Supabase 쿠키 세션 갱신 middleware, 안전한 상대 redirect 검증 테스트와 보호된 대시보드 자리표시를 추가했다. 배포 전 Supabase Auth Google provider에 Google Cloud Client ID/Secret과 ${NEXT_PUBLIC_APP_URL}/auth/callback redirect URL 등록이 필요하다.",
+      "started_at": "2026-09-09T16:51:57+0900",
+      "completed_at": "2026-09-09T16:58:21+0900"
     },
     {
       "step": 7,
