@@ -24,7 +24,7 @@
       "status": "completed",
       "summary": "src/types/index.ts에서 Subscription·CsvUpload·Transaction·AnalysisResult, 분석 결과·API 계약·카테고리·한도 상수를 재-export하고 타입 계약 테스트를 추가했다.",
       "started_at": "2026-09-09T16:22:00+0900",
-      "completed_at": "2026-09-09T16:25:15+0900"
+      "completed_at": "2026-09-09T16:26:16+0900"
     },
     {
       "step": 3,
