@@ -7,7 +7,8 @@
       "name": "db-contract-rpcs",
       "status": "completed",
       "summary": "0007_upload_contract_rpcs.sql과 access.sql로 status 어휘 및 transition_upload, claim_analysis_retry, mark_stale_upload, get_upload_report 계약을 추가·검증",
-      "started_at": "2026-09-09T19:46:37+0900"
+      "started_at": "2026-09-09T19:46:37+0900",
+      "completed_at": "2026-09-09T20:04:38+0900"
     },
     {
       "step": 1,
