@@ -7,7 +7,8 @@
       "name": "project-setup",
       "status": "completed",
       "summary": "Next.js 15.5.24 App Router 스캐폴딩과 Tailwind v4·Vitest 설정, 환경변수 예시, src 아키텍처 골격, 최소 랜딩을 추가하고 AC를 통과시켰다.",
-      "started_at": "2026-09-09T16:06:56+0900"
+      "started_at": "2026-09-09T16:06:56+0900",
+      "completed_at": "2026-09-09T16:17:45+0900"
     },
     {
       "step": 1,
