@@ -4,7 +4,7 @@
 
 - `/docs/USER_JOURNEY.md` — 4절 해지 여정, 5절 계정 삭제·다운그레이드
 - `/docs/ARCHITECTURE.md` — service role 사용 규칙, 보안 경계
-- `/src/services/` — Supabase 클라이언트, Storage 래퍼(step 5), Polar 클라이언트(step 11)
+- `/src/services/` — Supabase 클라이언트, Polar 클라이언트(step 11)
 - `/src/app/api/polar/` — step 11의 포털·구독 상태 처리
 
 ## 작업
@@ -19,10 +19,10 @@
 2. **`POST /api/account/delete`** — 순서를 지켜라:
    1. 세션 검증 후 **본인 계정인지 확인**한다.
    2. 활성 Polar 구독이 있으면 취소한다.
-   3. Storage의 **암호화된 원본 CSV를 모두 삭제**한다(step 5의 삭제 함수 사용).
-   4. `analysis_results` → `transactions` → `csv_uploads` → `subscriptions` 순으로 DB 행을 삭제한다.
-   5. Supabase Auth 사용자를 삭제한다.
-   6. 세션을 종료하고 랜딩으로 보낸다.
+   3. `analysis_results` → `transactions` → `csv_uploads` → `subscriptions` 순으로 DB 행을 삭제한다. 원본 CSV는 보관하지 않으므로 삭제할 파일이 없다(ADR-011).
+   4. Supabase Auth 사용자를 삭제한다.
+   5. 세션을 종료하고 랜딩으로 보낸다.
+   - 각 단계는 idempotent해야 한다. 중간에 실패하면 재호출로 남은 단계를 이어서 처리한다.
    - 이 경로는 service role 클라이언트를 쓰므로 **RLS가 적용되지 않는다. 모든 삭제 쿼리에 대상 user_id 조건을 명시적으로 넣어라.** 조건이 빠지면 전체 사용자 데이터가 지워진다.
 3. **삭제 확인 UI** — 되돌릴 수 없다는 경고와 함께 사용자가 확인 문구를 입력하게 한다. 클릭 한 번으로 삭제되지 않게 하라.
 
@@ -40,7 +40,8 @@ npm test
 1. 위 AC 커맨드를 실행한다.
 2. 체크리스트:
    - service role 사용 경로의 모든 쿼리에 user_id 조건이 있는가?
-   - Storage 원본 삭제가 누락되지 않았는가?
+   - 삭제가 `analysis_results` → `transactions` → `csv_uploads` → `subscriptions` → Auth 순인가?
+   - 각 단계가 idempotent해서 재호출로 이어서 완료되는가?
    - 삭제 전 확인 단계가 있는가?
 3. `phases/0-mvp/index.json`의 step 12를 업데이트한다.
 

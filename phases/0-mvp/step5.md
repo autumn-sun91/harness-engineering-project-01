@@ -1,28 +1,28 @@
-# Step 5: crypto-storage
+# Step 5: supabase-schema
 
 ## 읽어야 할 파일
 
-- `/docs/ARCHITECTURE.md` — "보안 경계" 섹션
-- `/docs/ADR.md` — ADR-011(원본은 암호화 보관하되 재분석 전용)
-- `/CLAUDE.md` — 암호화·시크릿 관련 CRITICAL 규칙
-- `/.env`, `/.env.example` — 사용 가능한 환경변수 키
+- `/docs/ARCHITECTURE.md` — DB 스키마 4테이블, RLS·인덱스, service role 사용 규칙
+- `/CLAUDE.md` — service role과 시크릿 관련 CRITICAL 규칙
+- `/src/types/` — step 2의 도메인 타입 (스키마와 1:1로 맞춰야 한다)
+- `/.env` — Supabase 관련 환경변수 키
 
 ## 작업
 
-`src/lib/crypto/`와 `src/services/`에 원본 CSV를 암호화해 Supabase Storage에 저장·삭제하는 래퍼를 구현한다.
+Supabase 스키마와 클라이언트 계층을 만든다.
 
-1. **암호화 유틸** (`src/lib/crypto/`)
-   - Node 표준 `crypto`의 **AES-256-GCM**을 사용한다. 외부 암호화 라이브러리를 추가하지 마라.
-   - 마스터 키는 서버 전용 환경변수에서 읽는다. `.env`에 해당 키가 없다면 `.env.example`과 `.env`에 키 **이름만** 추가하도록 사용자에게 알리고 `blocked` 처리하라(값은 사용자가 채운다).
-   - 파일마다 새 IV를 생성하고, IV와 auth tag를 `encryption_meta`로 반환한다(step 2 타입 참조).
-   - 암호화/복호화 왕복 테스트를 작성하라.
-2. **Storage 래퍼** (`src/services/`)
-   - 업로드 경로는 **`{user_id}/{uuid}.csv`** 형식으로 생성한다. **원본 파일명을 경로에 절대 사용하지 마라**(path traversal).
-   - 업로드, 다운로드(재분석용), 삭제(계정 삭제용) 함수를 제공한다.
-   - Supabase 클라이언트는 인자로 주입받아라. 이 모듈이 직접 클라이언트를 생성하지 않게 해서 테스트와 권한 분리를 쉽게 한다.
-3. 키·평문·파일 내용을 **절대 로그에 남기지 마라.**
-
-Supabase 연결이 필요한 부분은 실제 네트워크 호출 없이 검증 가능하도록 작성하고, 암호화 로직 자체는 순수 함수로 테스트하라.
+1. **마이그레이션 SQL** — `supabase/migrations/` 아래에 두고, Supabase SQL 에디터에서도 그대로 실행 가능한 순수 SQL로 작성한다. `docs/ARCHITECTURE.md`의 4테이블을 정의한다:
+   `subscriptions`, `csv_uploads`, `transactions`, `analysis_results`
+   - **금액은 반드시 `numeric(14,2)`.** float/double 금지.
+   - 상태값은 CHECK 제약 또는 enum으로 5개(`uploading|parsing|analyzing|completed|failed`)만 허용한다.
+   - `analysis_results.upload_id`는 unique — 업로드당 결과 1행이다.
+2. **RLS** — 전 테이블에 RLS를 켜고 `auth.uid() = user_id` 정책을 적용한다. 정책 없이 노출되는 테이블이 없어야 한다.
+3. **인덱스** — `transactions(upload_id)`, `csv_uploads(user_id, uploaded_at desc)`.
+4. **원자적 월 한도 검사** — 한도 검사와 업로드 레코드 생성을 **하나의 트랜잭션**에서 수행하는 Postgres 함수를 만든다. 동시에 여러 요청이 들어와도 Free 월 5회를 초과해 생성되지 않아야 한다. 실패 시 호출자가 `upload_limit_reached`로 변환할 수 있는 형태로 신호를 준다. 카운트 대상은 `status <> 'failed'`인 당월 업로드다.
+5. **Supabase 클라이언트 분리** (`src/services/`)
+   - 브라우저용(anon/publishable key), 서버 사용자 컨텍스트용(쿠키 기반, RLS 적용), service role용 세 가지를 명확히 분리해 export한다.
+   - **service role 클라이언트를 만드는 함수에는 "webhook 처리와 계정 삭제에서만 사용" 주석을 남기고, 클라이언트 번들에 포함될 수 없는 위치에 두어라.**
+6. 신규 가입자에게 `subscriptions` 행이 `plan='free'`로 생기게 한다(트리거 또는 최초 조회 시 생성). 어느 쪽이든 한 곳에서만 처리되게 하라.
 
 ## Acceptance Criteria
 
@@ -31,19 +31,22 @@ npm run build
 npm test
 ```
 
-테스트는 최소한 다음을 포함해야 한다: 암호화 → 복호화 왕복이 원본과 일치, 서로 다른 호출이 다른 IV를 생성, 잘못된 auth tag로 복호화 시 실패, 경로 생성 함수가 원본 파일명을 포함하지 않음.
+테스트는 타입과 스키마의 일치, 그리고 클라이언트 팩토리가 올바른 키를 참조하는지를 검증한다(실제 네트워크 호출 없이).
 
 ## 검증 절차
 
 1. 위 AC 커맨드를 실행한다.
 2. 체크리스트:
-   - 경로에 사용자 입력(파일명)이 섞이지 않는가?
-   - 키가 서버 전용 환경변수에서만 읽히는가? (`NEXT_PUBLIC_` 접두사 금지)
-   - 로그에 키나 평문이 남지 않는가?
-3. `phases/0-mvp/index.json`의 step 5를 업데이트한다. 마스터 키 환경변수가 없어 진행할 수 없으면 `"status": "blocked"`와 함께 필요한 키 이름을 `blocked_reason`에 명시하라.
+   - 모든 테이블에 RLS와 정책이 있는가?
+   - 금액이 `numeric(14,2)`인가?
+   - service role 키가 클라이언트에서 참조될 수 없는 위치에 있는가?
+   - 상태값이 5개로 제한되는가?
+3. Supabase 프로젝트 URL·키가 `.env`에 없어 검증이 불가능하면 `"status": "blocked"`와 함께 필요한 키를 `blocked_reason`에 명시하라.
+4. `phases/0-mvp/index.json`의 step 5를 업데이트한다. `"summary"`에 마이그레이션 파일 경로와 클라이언트 export 이름을 남겨라.
 
 ## 금지사항
 
-- 원본 파일 **다운로드용 공개 URL·서명 URL 생성 기능을 만들지 마라.** 이유: ADR-011에서 원본 보관은 재분석 전용이며 사용자 다운로드를 제공하지 않기로 했다.
-- `transactions` 등 파싱된 데이터를 암호화하지 마라. 이유: 집계 쿼리가 불가능해진다. 파생 데이터는 RLS + at-rest 암호화로 보호한다.
-- 키 로테이션·키 관리 시스템(KMS 연동 등)을 구현하지 마라. 이유: MVP 범위 밖이며 ADR-011에 한계로 명시되어 있다.
+- ORM(Prisma, Drizzle 등)을 도입하지 마라. 이유: Supabase 클라이언트만으로 충분하고, 스키마 정의가 두 곳으로 갈라진다.
+- `profiles` 같은 사용자 테이블을 추가로 만들지 마라. 이유: `auth.users`에 이미 이메일이 있고 앱 고유로 저장할 데이터가 없다.
+- `webhook_events`, `merchant_categories`, rate limit 테이블을 만들지 마라. 이유: 각각 `subscriptions` 컬럼, 매 요청 분류, 월 한도로 대체하기로 결정했다.
+- RLS를 끄거나 우회하는 정책(`using (true)`)을 쓰지 마라. 이유: 타 사용자 데이터가 노출된다.

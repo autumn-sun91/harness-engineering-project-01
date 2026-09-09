@@ -16,7 +16,7 @@ step 1에서 preview로 올린 프로젝트를 production으로 승격한다. **
    - 타 사용자의 uploadId로 `GET /api/uploads/[id]`를 호출하면 거부되는가?
    - `/login?redirect=https://evil.com`, `//evil.com`이 외부로 나가지 않는가?
    - Free 계정의 `GET /api/uploads/[id]` 응답에 Pro 전용 필드가 **존재하지 않는가**?
-   - 클라이언트 번들에 서버 전용 시크릿(`SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, `POLAR_*`, 암호화 마스터 키)이 포함되지 않았는가? 빌드 산출물에서 문자열을 검색해 확인하라.
+   - 클라이언트 번들에 서버 전용 시크릿(`SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, `POLAR_*`)이 포함되지 않았는가? 빌드 산출물에서 문자열을 검색해 확인하라.
    - `.env`가 커밋되지 않았는가?
 2. **Vercel 환경변수 설정** — `.env.example`의 모든 키를 production 환경에 설정한다. 값은 사용자가 제공해야 하므로, 값을 모르는 키가 있으면 **`blocked`로 기록하고 어떤 키가 필요한지 명시하라.** 임의의 값을 채워 넣지 마라.
    - `NEXT_PUBLIC_APP_URL`은 production 도메인으로 설정한다.

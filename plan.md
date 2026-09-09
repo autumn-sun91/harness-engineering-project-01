@@ -1,6 +1,6 @@
 # TxAnalyzer MVP — 구현 플랜
 
-> **Harness 실행 규칙**: `phases/0-mvp/step0.md`~`step13.md`는 각각 독립 세션에서 실행된다. 모든 step은 아래 Global Constraints와 공통 인터페이스를 그대로 사용하고, TDD 순서와 step별 AC를 자체 문서에 반복 기재한다.
+> **Harness 실행 규칙**: `phases/0-mvp/step0.md`~`step14.md`는 각각 독립 세션에서 실행된다. 모든 step은 아래 Global Constraints와 공통 인터페이스를 그대로 사용하고, TDD 순서와 step별 AC를 자체 문서에 반복 기재한다.
 
 **Goal:** 거래내역/카드 명세서 CSV를 업로드하면 정확한 소비 인사이트를 제공하고, 로그인·결제·배포까지 동작하는 B2C 핀테크 SaaS MVP를 만든다.
 
@@ -21,7 +21,7 @@
 - 월 한도는 Asia/Seoul 달력 월 기준이다. 기본 파일/인코딩/행·컬럼 검증을 통과해 분석 row가 생성된 업로드는 이후 실패해도 1회로 계산한다.
 - 재시도는 동일 upload row와 파싱된 transactions를 사용하고 최대 3회다. 새 업로드 한도를 다시 차감하지 않는다.
 - API 응답의 LLM 텍스트는 Markdown/HTML로 해석하지 않고 plain text로만 렌더한다.
-- 구현 step 0~12는 외부 자격증명 없이 mock으로 완료할 수 있어야 한다. 실제 키 부재는 step 13의 live integration/deploy만 `blocked` 사유가 된다.
+- 구현 step은 외부 자격증명 없이 mock으로 완료할 수 있어야 한다. 자격증명 부재가 `blocked` 사유가 되는 것은 step 1(Vercel preview 배포)과 step 14(live integration·production 배포)뿐이다.
 
 ---
 
@@ -405,26 +405,27 @@ MVP 제외: 원본 재다운로드·재분석, PDF 내보내기, 수동 컬럼 �
 
 ---
 
-## 10. 산출물 2 — Harness step 파일 14개
+## 10. 산출물 2 — Harness step 파일 15개
 
 각 step 파일은 아래 Files/Interfaces/Tests를 그대로 포함하고, 테스트 실패 → 최소 구현 → 전체 회귀 테스트 → 커밋 순서의 체크박스로 작성한다.
 
 | # | name | Files | Produces / Tests |
 |---|---|---|---|
 | 0 | `project-setup` | `package.json`, `package-lock.json`, `next.config.ts`, `tsconfig.json`, `postcss.config.mjs`, `vitest.config.ts`, `.env.example`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `src/test/setup.ts`, `src/app/__tests__/smoke.test.tsx` | Next 15.5.24 고정; `dev/build/lint/test` scripts; smoke test |
-| 1 | `core-types` | `src/types/domain.ts`, `src/types/api.ts`, `src/types/schemas.ts`, `src/lib/env.ts`, `src/types/__tests__/contracts.test.ts`, `src/lib/__tests__/env.test.ts` | 이 문서 §2·§5·§6 타입과 Zod schemas; server/client env 분리 |
-| 2 | `csv-parser` | `src/lib/csv/detect-encoding.ts`, `src/lib/csv/profile-csv.ts`, `src/lib/csv/normalize-transactions.ts`, `src/lib/csv/__tests__/fixtures/*.csv`, `src/lib/csv/__tests__/normalize-transactions.test.ts` | `profileCsv`, `normalizeTransactions`; §2 fixture 전부 |
-| 3 | `analysis-core` | `src/lib/analysis/aggregate.ts`, `src/lib/analysis/recurring.ts`, `src/lib/analysis/anomaly.ts`, `src/lib/analysis/__tests__/aggregate.test.ts` | `buildScopes`; decimal 산술·refund·제외 kind·scope 경계 |
-| 4 | `supabase-schema` | `supabase/migrations/001_schema.sql`, `supabase/migrations/002_rls_and_functions.sql`, `supabase/tests/access.sql`, `src/lib/supabase/browser.ts`, `src/lib/supabase/server.ts`, `src/lib/supabase/admin.ts` | 4테이블, RPC 5개, 신규 사용자 Free trigger, direct SELECT 거부, 상태 전이·동시 reserve/retry |
-| 5 | `auth-flow` | `src/app/login/page.tsx`, `src/app/login/actions.ts`, `src/app/auth/callback/route.ts`, `src/middleware.ts`, `src/lib/auth/redirect.ts`, `src/lib/auth/__tests__/redirect.test.ts` | Google OAuth, 세션 갱신, 안전한 상대 redirect |
-| 6 | `llm-analysis` | `src/services/anthropic.ts`, `src/lib/llm/schemas.ts`, `src/lib/llm/column-mapper.ts`, `src/lib/llm/merchant-classifier.ts`, `src/lib/llm/interpreter.ts`, `src/lib/llm/__tests__/llm-analysis.test.ts` | `inferColumnMapping`, `classifyMerchants`, `interpretScopes`; mock transport, Structured Outputs, timeout/429/5xx |
-| 7 | `analysis-orchestrator` | `src/lib/analysis/process-upload.ts`, `src/lib/analysis/analysis-repository.ts`, `src/lib/analysis/__tests__/process-upload.test.ts` | `processUpload(input: ProcessUploadInput,deps): Promise<void>`; user-token RLS 쓰기, 상태 전이, 240초 deadline, partial/failure, raw 비보관 |
-| 8 | `analyze-api` | `src/app/api/analyze/route.ts`, `src/app/api/analyze/[id]/retry/route.ts`, `src/app/api/uploads/route.ts`, `src/app/api/uploads/[id]/route.ts`, `src/app/api/__tests__/analyze.test.ts` | 202 후 `after()`, RPC-only report, polling, 소유권·한도 |
-| 9 | `dashboard-ui` | `src/app/(dashboard)/dashboard/page.tsx`, `src/app/(dashboard)/dashboard/error.tsx`, `src/components/upload/upload-widget.tsx`, `src/components/upload/use-upload-polling.ts`, `src/components/report/report-cards.tsx`, `src/components/report/history-list.tsx`, `src/components/report/__tests__/report-cards.test.tsx` | empty/upload/poll/partial/error/5 cards/teaser/history; plain text |
-| 10 | `billing` | `src/services/polar.ts`, `src/lib/billing/subscription-sync.ts`, `src/app/api/polar/checkout/route.ts`, `src/app/api/polar/webhook/route.ts`, `src/app/api/polar/portal/route.ts`, `src/lib/billing/__tests__/subscription-sync.test.ts` | 서명, 서버 product, event order/idempotency, checkout return refresh |
-| 11 | `account-settings` | `src/app/(dashboard)/settings/page.tsx`, `src/app/api/account/delete/route.ts`, `src/lib/account/delete-account.ts`, `src/lib/account/__tests__/delete-account.test.ts` | idempotent Polar→DB→Auth 삭제; 단계별 실패와 재호출 |
-| 12 | `landing-and-legal` | `src/app/(marketing)/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/app/(marketing)/__tests__/landing.test.tsx` | $9·5/30 비교, LLM 전송/원본 비보관 고지, 접근성 smoke |
-| 13 | `deploy` | `vercel.json`, `playwright.config.ts`, `e2e/mvp.spec.ts`, `docs/DEPLOYMENT.md` | Node/300초/env 검증, live integrations, Vercel preview E2E |
+| 1 | `deploy-preview` | `.gitignore`(`.vercel`) | 목업 상태 Vercel **preview** 배포, URL 200 검증. **Polar production 심사 제출 요청**(ADR-013·ADR-015). Vercel 인증 없으면 `blocked` |
+| 2 | `core-types` | `src/types/domain.ts`, `src/types/api.ts`, `src/types/schemas.ts`, `src/lib/env.ts`, `src/types/__tests__/contracts.test.ts`, `src/lib/__tests__/env.test.ts` | 이 문서 §2·§5·§6 타입과 Zod schemas; server/client env 분리 |
+| 3 | `csv-parser` | `src/lib/csv/detect-encoding.ts`, `src/lib/csv/profile-csv.ts`, `src/lib/csv/normalize-transactions.ts`, `src/lib/csv/__tests__/fixtures/*.csv`, `src/lib/csv/__tests__/normalize-transactions.test.ts` | `profileCsv`, `normalizeTransactions`; §2 fixture 전부 |
+| 4 | `analysis-core` | `src/lib/analysis/aggregate.ts`, `src/lib/analysis/recurring.ts`, `src/lib/analysis/anomaly.ts`, `src/lib/analysis/__tests__/aggregate.test.ts` | `buildScopes`; decimal 산술·refund·제외 kind·scope 경계 |
+| 5 | `supabase-schema` | `supabase/migrations/001_schema.sql`, `supabase/migrations/002_rls_and_functions.sql`, `supabase/tests/access.sql`, `src/lib/supabase/browser.ts`, `src/lib/supabase/server.ts`, `src/lib/supabase/admin.ts` | 4테이블, RPC 5개, 신규 사용자 Free trigger, direct SELECT 거부, 상태 전이·동시 reserve/retry |
+| 6 | `auth-flow` | `src/app/login/page.tsx`, `src/app/login/actions.ts`, `src/app/auth/callback/route.ts`, `src/middleware.ts`, `src/lib/auth/redirect.ts`, `src/lib/auth/__tests__/redirect.test.ts` | Google OAuth, 세션 갱신, 안전한 상대 redirect |
+| 7 | `llm-analysis` | `src/services/anthropic.ts`, `src/lib/llm/schemas.ts`, `src/lib/llm/column-mapper.ts`, `src/lib/llm/merchant-classifier.ts`, `src/lib/llm/interpreter.ts`, `src/lib/llm/__tests__/llm-analysis.test.ts` | `inferColumnMapping`, `classifyMerchants`, `interpretScopes`; mock transport, Structured Outputs, timeout/429/5xx |
+| 8 | `analysis-orchestrator` | `src/lib/analysis/process-upload.ts`, `src/lib/analysis/analysis-repository.ts`, `src/lib/analysis/__tests__/process-upload.test.ts` | `processUpload(input: ProcessUploadInput,deps): Promise<void>`; user-token RLS 쓰기, 상태 전이, 240초 deadline, partial/failure, raw 비보관 |
+| 9 | `analyze-api` | `src/app/api/analyze/route.ts`, `src/app/api/analyze/[id]/retry/route.ts`, `src/app/api/uploads/route.ts`, `src/app/api/uploads/[id]/route.ts`, `src/app/api/__tests__/analyze.test.ts` | 202 후 `after()`, RPC-only report, polling, 소유권·한도 |
+| 10 | `dashboard-ui` | `src/app/(dashboard)/dashboard/page.tsx`, `src/app/(dashboard)/dashboard/error.tsx`, `src/components/upload/upload-widget.tsx`, `src/components/upload/use-upload-polling.ts`, `src/components/report/report-cards.tsx`, `src/components/report/history-list.tsx`, `src/components/report/__tests__/report-cards.test.tsx` | empty/upload/poll/partial/error/5 cards/teaser/history; plain text |
+| 11 | `billing` | `src/services/polar.ts`, `src/lib/billing/subscription-sync.ts`, `src/app/api/polar/checkout/route.ts`, `src/app/api/polar/webhook/route.ts`, `src/app/api/polar/portal/route.ts`, `src/lib/billing/__tests__/subscription-sync.test.ts` | 서명, 서버 product, event order/idempotency, checkout return refresh |
+| 12 | `account-settings` | `src/app/(dashboard)/settings/page.tsx`, `src/app/api/account/delete/route.ts`, `src/lib/account/delete-account.ts`, `src/lib/account/__tests__/delete-account.test.ts` | idempotent Polar→DB→Auth 삭제; 단계별 실패와 재호출 |
+| 13 | `landing-and-legal` | `src/app/(marketing)/page.tsx`, `src/app/privacy/page.tsx`, `src/app/terms/page.tsx`, `src/app/(marketing)/__tests__/landing.test.tsx` | $9·5/30 비교, LLM 전송/원본 비보관 고지, 접근성 smoke |
+| 14 | `deploy-production` | `vercel.json`, `playwright.config.ts`, `e2e/mvp.spec.ts`, `docs/DEPLOYMENT.md` | production 승격, Node/300초/env 검증, live integrations, E2E |
 
 모든 step의 공통 AC:
 
@@ -434,17 +435,18 @@ npm run build
 npm test
 ```
 
-Step 4는 추가로 `npx supabase db reset && npx supabase test db`, Step 13은 Playwright E2E와 Vercel preview smoke test를 실행한다.
+Step 5는 추가로 `npx supabase db reset && npx supabase test db`, Step 14는 Playwright E2E와 배포 smoke test를 실행한다.
 
 ---
 
 ## 11. 실행 전제와 Harness 안전장치
 
 - `python3 scripts/execute.py 0-mvp` 전에 `git status --short`가 비어 있어야 한다. 계획/설계 문서는 먼저 별도 커밋한다. 실행기가 `git add -A`를 사용하므로 dirty tree에서는 실행하지 않는다.
-- step 0~12는 API 응답 fixture와 mock transport를 사용한다. 키가 없다는 이유로 status를 `blocked`로 바꾸지 않는다.
-- step 13 시작 전 필요한 값: Supabase URL/publishable/service-role key, Google OAuth Client ID/Secret, Anthropic API key, Polar API key/product ID/webhook secret, Vercel project.
+- step 0과 step 2~13은 API 응답 fixture와 mock transport를 사용한다. 키가 없다는 이유로 status를 `blocked`로 바꾸지 않는다.
+- step 1은 Vercel 인증(`npx vercel whoami` 또는 `VERCEL_TOKEN`)이 없으면 `blocked`다. ADR-015에 따라 이 step 직후 Polar production 심사를 제출해야 한다.
+- step 14 시작 전 필요한 값: Supabase URL/publishable/service-role key, Google OAuth Client ID/Secret, Anthropic API key, Polar API key/product ID/webhook secret, Vercel project.
 - `ANTHROPIC_MODEL=claude-sonnet-5`, `POLAR_PRODUCT_ID`는 서버 전용 환경변수다.
-- live 자격증명이 없으면 step 13만 `blocked`로 기록하며, 앞선 구현 커밋은 보존한다.
+- live 자격증명이 없으면 step 1과 step 14만 `blocked`로 기록하며, 앞선 구현 커밋은 보존한다.
 
 ---
 

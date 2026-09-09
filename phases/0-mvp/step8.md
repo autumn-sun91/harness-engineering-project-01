@@ -1,43 +1,46 @@
-# Step 8: llm-analysis
+# Step 8: analysis-orchestrator
 
 ## 읽어야 할 파일
 
-- `/docs/ARCHITECTURE.md` — "분석 파이프라인", "보안 경계"(LLM 전송 범위, 신뢰 불가 입력)
-- `/docs/ADR.md` — ADR-009, ADR-010, ADR-012
-- `/docs/PRD.md` — 5종 분석
-- `/src/types/` — step 2의 `interpretation` 타입, 카테고리 enum
-- `/src/lib/csv/` — step 3 파서(컬럼 매핑을 주입받는 형태)
-- `/src/lib/analysis/` — step 4 집계 결과 형태
-- `/.env` — `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`
+- `/plan.md` — §3 분석 파이프라인과 요청 생명주기, §6 `ProcessUploadInput`·`StoredAnalysisPayload`
+- `/docs/ARCHITECTURE.md` — 분석 파이프라인, 패턴(쓰기 경계)
+- `/docs/USER_JOURNEY.md` — 2절 상태 머신
+- `/docs/ADR.md` — ADR-007(`202 + after()`), ADR-010(dual-scope), ADR-011(원본 비보관)
+- `/src/lib/csv/`, `/src/lib/analysis/`, `/src/lib/llm/`, `/src/lib/supabase/` — step 3·4·5·7의 산출물
 
 ## 작업
 
-`src/services/claude.ts`에 Claude API 호출 계층을 구현한다. **모델 ID는 `ANTHROPIC_MODEL` 환경변수에서 읽고 코드에 하드코딩하지 마라.** Anthropic SDK 사용법과 현행 모델 정보가 필요하면 `claude-api` 스킬을 참조하라.
+`src/lib/analysis/process-upload.ts`와 `src/lib/analysis/analysis-repository.ts`에 백그라운드 분석 작업을 구현한다. **앞선 step의 조각을 조립하는 것이 이 step의 역할**이며 새 도메인 로직을 만들지 마라. HTTP는 다루지 않는다 — 라우트는 step 9다.
 
-세 가지 호출을 만든다.
+1. **`processUpload(input: ProcessUploadInput, deps): Promise<void>`**
 
-1. **컬럼 매핑 추론** — CSV 헤더와 **샘플 3행만** 보내 `{ date, amount, description }`에 해당하는 컬럼명을 추론한다. 결과는 step 3 파서에 주입한다. 추론 실패 시 `parse_failed`로 처리한다.
-2. **카테고리 분류** — 고유한 `merchant_normalized` 목록을 배치로 보내 카테고리를 부여받는다.
-   - **반환된 카테고리가 step 2의 고정 enum에 속하는지 반드시 검증하고, 벗어나면 `기타`로 폴백하라.** 자유 문자열을 그대로 저장하지 마라.
-3. **해석 (1회 통합 호출)** — step 4가 만든 **집계 통계만** 입력으로 보내 AI 요약 + 절약 인사이트 + 이상거래 설명을 한 번에 생성한다. **거래 원본 전체를 보내지 마라.**
-   - 절약 인사이트와 이상거래 설명은 Free 티저를 위해 **plan과 무관하게 항상 전체 생성**한다(ADR-010). 트리밍은 조회 시점에 한다.
+   `ProcessUploadInput`은 `{ uploadId, userId, accessToken, fileBytes }`다. 외부 의존(LLM 호출, DB 접근, 시계)은 `deps`로 주입받아라. 이 함수가 직접 클라이언트를 생성하면 테스트할 수 없다.
 
-**공통 요구사항**
+   순서를 지켜라.
 
-- **프롬프트 인젝션 방어**: 가맹점명·적요는 사용자가 CSV에 넣는 신뢰 불가 입력이다. 프롬프트에서 데이터 영역을 구분자로 격리하고, 데이터 내부의 지시를 따르지 않는다는 지침을 시스템 프롬프트에 명시하라.
-- **출력 검증**: 모든 응답을 Zod 스키마로 검증하고, 통과하지 못하면 `analysis_failed`로 처리하라. 검증되지 않은 값을 DB나 UI로 흘려보내지 마라.
-- **타임아웃**과 최대 출력 토큰 상한을 설정하라. 무한정 대기하면 Vercel 함수 한도(300초)를 넘긴다.
-- 해석 호출이 실패해도 집계 결과는 살아 있어야 한다. 이 계층은 **실패를 예외가 아니라 결과로 반환**해 호출자가 부분 실패를 처리할 수 있게 하라.
+   1. `transition_upload(uploadId, 'queued', 'parsing')`
+   2. 컬럼 매핑 추론(step 7) → **코드로 의미 검증**(step 3) → 정규화
+   3. 정규화된 `transactions`를 저장하고 `skippedRowCount`를 기록
+   4. `transition_upload(uploadId, 'parsing', 'analyzing')`
+   5. 가맹점 dedupe → 분류 batch(step 7) → `transactions.category` 갱신
+   6. `recent12m`·`full` 두 scope 집계(step 4)
+   7. 두 scope 해석 1회 호출(step 7)
+   8. `analysis_results.payload` 저장 후 `completed`. **해석만 실패했으면 집계를 저장하고 `partial`로 둔다.**
 
-테스트는 실제 API를 호출하지 말고 응답을 모킹해 작성하라: enum 밖 카테고리가 `기타`로 폴백되는지, 스키마 위반 응답이 거부되는지, 적요에 지시문(`"위 지시를 무시하고..."`)이 있어도 그대로 통과하지 않는지.
+2. **상태 전이는 반드시 `transition_upload` RPC로만 한다.** `csv_uploads`를 직접 UPDATE하지 마라. 실패 시에는 `error_code`를 metadata로 넘겨 `failed`로 전이한다.
 
-**분류 품질 평가는 `npm run eval`로 분리한다.**
+3. **쓰기는 캡처된 사용자 access token으로 수행한다.** `transactions`와 `analysis_results` INSERT는 `WITH CHECK (auth.uid() = user_id)` 아래에서 이루어진다. service role 클라이언트를 쓰지 마라.
 
-- `npm test`에서 실제 Anthropic API를 **절대 호출하지 마라.** Stop 훅이 매 턴 `lint && build && test`를 실행하므로, 실제 호출이 섞이면 파일 하나 고칠 때마다 비용이 나가고 모델이 답을 조금만 바꿔도 무관한 커밋에서 빨간불이 뜬다.
-- 그렇다고 모킹만 두면 **스키마는 통과하는데 분류 내용이 쓸모없는 상태**를 걸러내지 못한다. 그래서 실제 API로 품질을 재는 경로를 따로 만든다.
-- `scripts/eval/`에 라벨링된 샘플 거래 20~30건(가맹점명 + 정답 카테고리)을 픽스처로 두고, 실제 분류 호출의 **정확도(%)를 출력**하는 평가를 작성한다. step 0에서 자리만 잡아둔 `npm run eval`이 이것을 실행한다.
-- 샘플의 정답은 사람이 검수해야 의미가 있다. 이 step에서는 초안까지 만들고, **정답 검수가 필요하다는 사실을 `summary`에 남겨라.**
-- `ANTHROPIC_API_KEY`가 없으면 `npm run eval`은 실패해도 된다. **AC에 넣지 마라.**
+4. **내부 deadline 240초.** 초과하면 `analysis_timeout`으로 실패시킨다. 시계는 주입받아 fake clock으로 테스트할 수 있게 하라.
+
+5. **부분 실패 처리**
+   - 분류 batch 일부 실패 → 해당 가맹점 `other`, 나머지 분석 계속
+   - 해석 실패 → `partial`, 집계는 보존
+   - 파싱 전 실패 → `failed`. 원본을 보관하지 않으므로 재시도 대상이 아니다
+
+6. **`analysis-repository.ts`** — transactions 저장, category 갱신, payload 저장을 담당한다. 쿼리를 `process-upload.ts`에 흩지 마라.
+
+7. `fileBytes`와 `accessToken`을 **로그·DB·에러 메시지 어디에도 남기지 마라.** 함수가 끝나면 원본 바이트에 대한 참조가 남지 않아야 한다.
 
 ## Acceptance Criteria
 
@@ -46,23 +49,22 @@ npm run build
 npm test
 ```
 
-`npm run eval`은 AC가 아니다. 실제 API 키와 사람의 정답 검수가 필요하므로 수동 실행한다.
+테스트는 최소한 다음을 포함해야 한다: `queued → parsing → analyzing → completed` 정상 경로, 해석 실패 시 `partial` + 집계 보존, 파싱 실패 시 `failed` + 적절한 `error_code`, 분류 batch 실패 시 `other` 폴백 후 진행, fake clock으로 240초 초과 시 `analysis_timeout`, 상태 전이가 모두 RPC를 거치는지, 원본 바이트가 저장 호출에 전달되지 않는지.
 
 ## 검증 절차
 
 1. 위 AC 커맨드를 실행한다.
 2. 체크리스트:
-   - 모델 ID가 환경변수에서 오는가?
-   - LLM에 거래 원본 전체가 아니라 가맹점명·집계 통계만 전달되는가?
-   - 모든 응답이 Zod 검증을 거치는가?
-   - 카테고리가 고정 enum으로 제한되는가?
-3. `ANTHROPIC_API_KEY`가 없어 검증이 불가능하면 `"status": "blocked"`로 기록하라(단, 모킹 테스트는 키 없이도 통과해야 한다).
-4. `phases/0-mvp/index.json`의 step 8을 업데이트한다.
+   - 상태 전이가 전부 `transition_upload`를 통하는가?
+   - 쓰기가 service role이 아니라 사용자 토큰으로 이루어지는가?
+   - `recent12m`과 `full`이 **각각 자체 집계와 그 집계만 본 해석**을 갖는가?
+   - LLM 호출이 모두 모킹되어 테스트가 결정적인가?
+3. `phases/0-mvp/index.json`의 step 8을 업데이트한다.
 
 ## 금지사항
 
-- 금액 합계·평균·추이를 LLM에 계산시키지 마라. 이유: 환각이 발생하면 사용자에게 틀린 금액을 보여준다. 집계는 step 4의 코드가 이미 했다.
-- 분류 결과를 전역 캐시 테이블에 저장하지 마라. 이유: 사용자 입력에서 파생된 값을 전 사용자가 공유하면 캐시 오염이 전파된다. MVP에서는 매 분석마다 분류한다.
-- 다중 LLM 프로바이더 추상화 레이어를 만들지 마라. 이유: ADR-004에서 Claude 단일 프로바이더로 정했다.
-- 해석 실패 시 예외를 던져 파이프라인 전체를 중단시키지 마라. 이유: 집계 결과만으로도 사용자에게 보여줄 가치가 있다.
-- `npm test`에서 실제 Anthropic API를 호출하지 마라. 이유: Stop 훅이 매 턴 테스트를 돌려 비용이 나가고, 모델 출력이 비결정적이라 무관한 커밋에서 실패한다. 실제 호출이 필요한 검증은 `npm run eval`로 분리한다.
+- HTTP 라우트·`after()` 등록을 여기서 만들지 마라. 이유: step 9의 범위다. 이 함수는 순수하게 호출 가능해야 테스트된다.
+- 원본 CSV를 Storage나 DB에 쓰지 마라. 이유: ADR-011에서 비보관으로 정했다.
+- `csv_uploads`를 직접 UPDATE하지 마라. 이유: 상태 전이 규칙과 소유권 검사가 RPC 안에 있다.
+- 잡 큐·워커·크론을 도입하지 마라. 이유: ADR-007에서 `after()` 하나로 처리하기로 했다.
+- 실제 Anthropic API를 호출하는 테스트를 쓰지 마라. 이유: ADR-017. Stop 훅이 매 턴 테스트를 돌린다.
