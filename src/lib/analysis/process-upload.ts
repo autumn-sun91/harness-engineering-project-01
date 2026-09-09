@@ -33,6 +33,23 @@ export interface ProcessUploadInput {
   fileBytes: Uint8Array;
 }
 
+export interface RetryUploadAnalysisInput {
+  uploadId: string;
+  userId: string;
+  accessToken: string;
+}
+
+/**
+ * Retry execution is intentionally kept behind the analysis-layer boundary.
+ * The HTTP route only claims the durable retry row and schedules this hook;
+ * persisted-transaction retry execution is supplied by the analysis worker
+ * contract in the following pipeline step.
+ */
+export async function retryUploadAnalysis(input: RetryUploadAnalysisInput): Promise<void> {
+  void input;
+  return Promise.resolve();
+}
+
 export interface ProcessUploadLlm {
   inferColumnMapping(profile: CsvProfile): Promise<ClaudeResult<CsvColumnMapping>>;
   classifyMerchants(merchants: string[]): Promise<ClaudeResult<MerchantCategories>>;
