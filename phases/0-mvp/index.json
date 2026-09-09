@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "csv-parser",
-      "status": "pending"
+      "status": "completed",
+      "summary": "profileCsv(input: Uint8Array | ArrayBuffer | string): CsvProfile, normalizeTransactions(profile: CsvProfile, mapping: CsvColumnMapping): CsvParseResult, parseCsv(input, mapping): CsvParseResult를 구현하고 순수 CSV 파싱·인코딩·금액 정규화 테스트를 통과시켰다.",
+      "started_at": "2026-09-09T16:26:17+0900",
+      "completed_at": "2026-09-09T16:36:06+0900"
     },
     {
       "step": 4,
