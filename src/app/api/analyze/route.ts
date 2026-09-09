@@ -6,12 +6,12 @@ import { createAnalysisRepositoryForAccessToken } from "../../../lib/analysis/an
 import { processUpload } from "../../../lib/analysis/process-upload";
 import { createClaudeService } from "../../../services/claude";
 import { createServerSupabaseClient } from "../../../services/supabase/server";
-import { MAX_FILE_SIZE_BYTES } from "../../../types";
+import { MAX_FILE_SIZE_BYTES, type ApiErrorCode } from "../../../types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const ERROR_MESSAGES: Record<string, string> = {
+const ERROR_MESSAGES: Partial<Record<ApiErrorCode, string>> = {
   unauthorized: "로그인이 필요합니다.",
   invalid_file_type: "CSV 파일만 올릴 수 있습니다.",
   file_too_large: "파일이 4MB를 넘습니다.",
@@ -36,7 +36,7 @@ type SupabaseAuthClient = {
 
 function errorResponse(code: string, status: number): NextResponse {
   return NextResponse.json(
-    { error: { code, message: ERROR_MESSAGES[code] ?? ERROR_MESSAGES.analysis_failed } },
+    { error: { code, message: ERROR_MESSAGES[code as ApiErrorCode] ?? "분석에 실패했습니다." } },
     { status },
   );
 }

@@ -10,7 +10,6 @@ import {
 } from "./index";
 import {
   type AnalysisRepository,
-  type AnalysisUploadStatus,
   type StoredAnalysisPayload,
 } from "./analysis-repository";
 import type {
@@ -23,6 +22,8 @@ import type {
   Category,
   Interpretation,
   Transaction,
+  ApiErrorCode,
+  UploadStatus,
 } from "../../types";
 import { CATEGORIES } from "../../types";
 
@@ -71,7 +72,8 @@ export interface ProcessUploadDeps {
 const DEADLINE_MS = 240_000;
 const DEFAULT_MODEL = "claude-sonnet-5";
 
-type FailureCode =
+type FailureCode = Extract<
+  ApiErrorCode,
   | "empty_file"
   | "encoding_error"
   | "parse_failed"
@@ -79,7 +81,8 @@ type FailureCode =
   | "mixed_currency"
   | "unsupported_transaction_semantics"
   | "analysis_timeout"
-  | "analysis_failed";
+  | "analysis_failed"
+>;
 
 class ProcessUploadFailure extends Error {
   constructor(readonly errorCode: FailureCode) {
@@ -248,11 +251,11 @@ export async function processUpload(
   const repository = deps.createRepository?.(input.accessToken) ?? deps.repository;
   const startedAt = now();
   const createdAt = new Date(startedAt).toISOString();
-  let currentStatus: AnalysisUploadStatus = "queued";
+  let currentStatus: UploadStatus = "queued";
   let fileBytes: Uint8Array | null = input.fileBytes;
 
   const transition = async (
-    nextStatus: AnalysisUploadStatus,
+    nextStatus: UploadStatus,
     metadata?: Parameters<AnalysisRepository["transitionUpload"]>[0]["metadata"],
   ): Promise<void> => {
     await repository.transitionUpload({

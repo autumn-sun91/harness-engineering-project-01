@@ -1,4 +1,6 @@
-const ERROR_MESSAGES: Record<string, string> = {
+import type { ApiErrorCode } from "../../types";
+
+const ERROR_MESSAGES: Record<ApiErrorCode, string> = {
   unauthorized: "로그인이 필요합니다.",
   invalid_file_type: "CSV 파일만 올릴 수 있습니다.",
   file_too_large: "파일이 4MB를 넘습니다.",
@@ -17,5 +19,5 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export function getUploadErrorMessage(code: string | null | undefined): string {
-  return ERROR_MESSAGES[code ?? ""] ?? ERROR_MESSAGES.analysis_failed;
+  return ERROR_MESSAGES[code as ApiErrorCode] ?? ERROR_MESSAGES.analysis_failed;
 }

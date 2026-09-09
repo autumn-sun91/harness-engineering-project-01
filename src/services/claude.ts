@@ -5,7 +5,7 @@ import type { MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resource
 import { z } from "zod";
 
 import { normalizeTransactions, type CsvColumnMapping, type CsvProfile } from "../lib/csv";
-import type { Aggregates, Category, Interpretation } from "../types";
+import type { Aggregates, ApiErrorCode, Category, Interpretation } from "../types";
 import { CATEGORIES } from "../types";
 
 const MAX_MAPPING_ROWS = 20;
@@ -125,7 +125,10 @@ export interface ClaudeUsage {
   outputTokens: number;
 }
 
-export type ClaudeErrorCode = "analysis_failed" | "column_mapping_failed";
+export type ClaudeErrorCode = Extract<
+  ApiErrorCode,
+  "analysis_failed" | "column_mapping_failed"
+>;
 
 export interface ClaudeSuccess<T> {
   ok: true;

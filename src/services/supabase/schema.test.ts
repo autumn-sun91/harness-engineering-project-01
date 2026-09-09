@@ -12,17 +12,24 @@ const billingMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/0006_billing.sql"),
   "utf8",
 );
+const uploadContractMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/0007_upload_contract_rpcs.sql"),
+  "utf8",
+);
 
 describe("Supabase schema contract", () => {
   it("keeps the database upload statuses aligned with the domain type", () => {
+    const migrations = `${migration}\n${uploadContractMigration}`;
     for (const status of UPLOAD_STATUSES) {
-      expect(migration).toContain(`'${status}'`);
+      expect(migrations).toContain(`'${status}'`);
     }
 
-    expect(migration).toContain(
+    expect(uploadContractMigration).toContain(
+      "check (status in ('queued', 'parsing', 'analyzing', 'partial', 'completed', 'failed'))",
+    );
+    expect(uploadContractMigration).not.toContain(
       "check (status in ('uploading', 'parsing', 'analyzing', 'completed', 'failed'))",
     );
-    expect(migration).not.toContain("'partial'");
   });
 
   it("defines the four domain tables and the decimal transaction amount", () => {

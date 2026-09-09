@@ -29,9 +29,10 @@ describe("core type contracts", () => {
 
   it("keeps the upload status contract", () => {
     expect(UPLOAD_STATUSES).toEqual([
-      "uploading",
+      "queued",
       "parsing",
       "analyzing",
+      "partial",
       "completed",
       "failed",
     ]);
@@ -45,8 +46,13 @@ describe("core type contracts", () => {
       "empty_file",
       "encoding_error",
       "parse_failed",
+      "column_mapping_failed",
+      "mixed_currency",
+      "unsupported_transaction_semantics",
       "upload_limit_reached",
+      "analysis_in_progress",
       "retry_limit_exceeded",
+      "analysis_timeout",
       "analysis_failed",
       "not_found",
     ]);

@@ -1,16 +1,5 @@
 import type { UploadReport } from "./api";
-
-export const DASHBOARD_UPLOAD_STATUSES = [
-  "queued",
-  "uploading",
-  "parsing",
-  "analyzing",
-  "partial",
-  "completed",
-  "failed",
-] as const;
-
-export type DashboardUploadStatus = (typeof DASHBOARD_UPLOAD_STATUSES)[number];
+import type { UploadStatus } from "./constants";
 
 export interface DashboardUpload {
   id: string;
@@ -19,7 +8,7 @@ export interface DashboardUpload {
   fileSize: number;
   rowCount: number;
   skippedRowCount: number;
-  status: DashboardUploadStatus;
+  status: UploadStatus;
   errorCode: string | null;
   scopeStart: string | null;
   scopeEnd: string | null;
@@ -32,7 +21,7 @@ export interface DashboardUpload {
 
 export interface DashboardUploadDetail {
   uploadId: string;
-  status: DashboardUploadStatus;
+  status: UploadStatus;
   errorCode: string | null;
   report: UploadReport | null;
 }

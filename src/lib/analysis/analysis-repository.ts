@@ -3,15 +3,7 @@ import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Aggregates, Interpretation } from "../../types";
-import type { Category, Transaction } from "../../types";
-
-export type AnalysisUploadStatus =
-  | "queued"
-  | "parsing"
-  | "analyzing"
-  | "partial"
-  | "completed"
-  | "failed";
+import type { Category, Transaction, UploadStatus } from "../../types";
 
 export interface TransitionUploadMetadata {
   rowCount?: number;
@@ -25,8 +17,8 @@ export interface TransitionUploadMetadata {
 export interface TransitionUploadArgs {
   uploadId: string;
   userId: string;
-  expectedStatus: AnalysisUploadStatus;
-  nextStatus: AnalysisUploadStatus;
+  expectedStatus: UploadStatus;
+  nextStatus: UploadStatus;
   metadata?: TransitionUploadMetadata;
 }
 

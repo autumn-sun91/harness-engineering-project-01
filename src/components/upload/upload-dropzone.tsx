@@ -6,7 +6,7 @@ import { MAX_FILE_SIZE_BYTES } from "../../types";
 import type { DashboardUploadDetail } from "../../types/dashboard";
 import { getUploadErrorMessage } from "./upload-errors";
 
-const ACTIVE_STATUSES = new Set(["queued", "uploading", "parsing", "analyzing"]);
+const ACTIVE_STATUSES = new Set(["queued", "parsing", "analyzing"]);
 const POLL_TIMEOUT_MS = 2 * 60 * 1_000;
 
 interface UploadDropzoneProps {
@@ -37,7 +37,6 @@ function errorCodeFromBody(value: unknown): string {
 function statusFromValue(value: unknown): DashboardUploadDetail["status"] {
   if (
     value === "queued" ||
-    value === "uploading" ||
     value === "parsing" ||
     value === "analyzing" ||
     value === "partial" ||

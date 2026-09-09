@@ -5,8 +5,8 @@ import { syncSubscriptionFromCheckout } from "../../../lib/billing/checkout-sync
 import { isProSubscription } from "../../../lib/billing/subscription";
 import DashboardClient from "../../../components/dashboard/dashboard-client";
 import { createServerSupabaseClient } from "../../../services/supabase/server";
-import type { UploadReport } from "../../../types";
-import type { DashboardUpload, DashboardUploadStatus } from "../../../types/dashboard";
+import type { UploadReport, UploadStatus } from "../../../types";
+import type { DashboardUpload } from "../../../types/dashboard";
 
 const METADATA_COLUMNS = [
   "id",
@@ -36,8 +36,8 @@ function numberValue(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function statusValue(value: unknown): DashboardUploadStatus {
-  if (value === "queued" || value === "uploading" || value === "parsing" || value === "analyzing" || value === "partial" || value === "completed" || value === "failed") {
+function statusValue(value: unknown): UploadStatus {
+  if (value === "queued" || value === "parsing" || value === "analyzing" || value === "partial" || value === "completed" || value === "failed") {
     return value;
   }
   return "failed";
@@ -63,7 +63,7 @@ function toDashboardUpload(row: MetadataRow): DashboardUpload {
   };
 }
 
-function isReportAvailable(status: DashboardUploadStatus): boolean {
+function isReportAvailable(status: UploadStatus): boolean {
   return status === "completed" || status === "partial";
 }
 

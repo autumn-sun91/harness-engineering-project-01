@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createServerSupabaseClient } from "../../../../services/supabase/server";
+import type { ApiErrorCode } from "../../../../types";
 
-const ACTIVE_STATUSES = new Set(["queued", "uploading", "parsing", "analyzing"]);
+const ACTIVE_STATUSES = new Set(["queued", "parsing", "analyzing"]);
 const STALE_AFTER_MS = 10 * 60 * 1_000;
 const METADATA_COLUMNS = [
   "id",
@@ -35,13 +36,13 @@ type SupabaseUploadDetailClient = {
 };
 
 function errorResponse(code: string, status: number): NextResponse {
-  const messages: Record<string, string> = {
+  const messages: Partial<Record<ApiErrorCode, string>> = {
     unauthorized: "로그인이 필요합니다.",
     not_found: "리포트를 찾을 수 없습니다.",
     analysis_failed: "분석 결과를 읽지 못했습니다.",
   };
   return NextResponse.json({
-    error: { code, message: messages[code] ?? messages.analysis_failed },
+    error: { code, message: messages[code as ApiErrorCode] ?? "분석 결과를 읽지 못했습니다." },
   }, { status });
 }
 
@@ -122,7 +123,7 @@ export async function GET(
   }
 
   const status = statusOf(row);
-  if (status === "queued" || status === "uploading" || status === "parsing" || status === "analyzing" || status === "failed") {
+  if (status === "queued" || status === "parsing" || status === "analyzing" || status === "failed") {
     return NextResponse.json(detail(row, null));
   }
 

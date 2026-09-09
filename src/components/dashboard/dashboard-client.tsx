@@ -6,8 +6,8 @@ import { useCallback, useState } from "react";
 import { ReportView } from "../report/report-view";
 import UploadDropzone from "../upload/upload-dropzone";
 import { getUploadErrorMessage } from "../upload/upload-errors";
-import type { UploadReport } from "../../types";
-import type { DashboardUpload, DashboardUploadDetail, DashboardUploadStatus } from "../../types/dashboard";
+import type { UploadReport, UploadStatus } from "../../types";
+import type { DashboardUpload, DashboardUploadDetail } from "../../types/dashboard";
 
 interface DashboardClientProps {
   initialUploads: DashboardUpload[];
@@ -19,12 +19,11 @@ interface DashboardClientProps {
   logoutAction?: () => Promise<void>;
 }
 
-const ACTIVE_STATUSES = new Set<DashboardUploadStatus>(["queued", "uploading", "parsing", "analyzing"]);
+const ACTIVE_STATUSES = new Set<UploadStatus>(["queued", "parsing", "analyzing"]);
 
-function statusLabel(status: DashboardUploadStatus): string {
-  const labels: Record<DashboardUploadStatus, string> = {
+function statusLabel(status: UploadStatus): string {
+  const labels: Record<UploadStatus, string> = {
     queued: "대기 중",
-    uploading: "업로드 중",
     parsing: "파일 읽는 중",
     analyzing: "분석 중",
     partial: "부분 완료",

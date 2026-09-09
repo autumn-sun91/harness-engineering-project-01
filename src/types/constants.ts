@@ -12,9 +12,10 @@ export const CATEGORIES = [
 export type Category = (typeof CATEGORIES)[number];
 
 export const UPLOAD_STATUSES = [
-  "uploading",
+  "queued",
   "parsing",
   "analyzing",
+  "partial",
   "completed",
   "failed",
 ] as const;
@@ -28,8 +29,13 @@ export const API_ERROR_CODES = [
   "empty_file",
   "encoding_error",
   "parse_failed",
+  "column_mapping_failed",
+  "mixed_currency",
+  "unsupported_transaction_semantics",
   "upload_limit_reached",
+  "analysis_in_progress",
   "retry_limit_exceeded",
+  "analysis_timeout",
   "analysis_failed",
   "not_found",
 ] as const;

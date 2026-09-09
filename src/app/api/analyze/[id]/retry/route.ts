@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { retryUploadAnalysis } from "../../../../../lib/analysis/process-upload";
 import { createServerSupabaseClient } from "../../../../../services/supabase/server";
+import type { ApiErrorCode } from "../../../../../types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const ERROR_MESSAGES: Record<string, string> = {
+const ERROR_MESSAGES: Partial<Record<ApiErrorCode, string>> = {
   unauthorized: "로그인이 필요합니다.",
   retry_limit_exceeded: "재시도 횟수를 모두 썼습니다.",
   not_found: "리포트를 찾을 수 없습니다.",
@@ -28,7 +29,7 @@ type SupabaseRetryClient = {
 
 function errorResponse(code: string, status: number): NextResponse {
   return NextResponse.json(
-    { error: { code, message: ERROR_MESSAGES[code] ?? ERROR_MESSAGES.analysis_failed } },
+    { error: { code, message: ERROR_MESSAGES[code as ApiErrorCode] ?? "분석에 실패했습니다." } },
     { status },
   );
 }
