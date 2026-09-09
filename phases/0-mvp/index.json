@@ -80,7 +80,7 @@
       "status": "completed",
       "summary": "POST /api/analyze의 4MB·CSV·인코딩 검증과 reserve_upload 원자 RPC, after() 기반 202 응답을 구현하고 retry claim, 업로드 목록·상세 report RPC 라우트와 소유권·stale 처리 테스트를 추가했다.",
       "started_at": "2026-09-09T17:27:19+0900",
-      "completed_at": "2026-09-09T17:37:36+0900"
+      "completed_at": "2026-09-09T17:39:16+0900"
     },
     {
       "step": 10,
