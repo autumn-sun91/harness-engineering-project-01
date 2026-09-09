@@ -56,6 +56,22 @@ describe("dashboard UI", () => {
     expect(markup).not.toContain("오류");
   });
 
+  it("renders billing notices and the customer portal entry point", () => {
+    const markup = renderToStaticMarkup(
+      <DashboardClient
+        initialUploads={[]}
+        initialReport={null}
+        checkoutNotice="업그레이드가 취소되었어요"
+        subscriptionNotice="현재 결제 주기(2026. 10. 9.)까지 Pro를 이용할 수 있어요"
+        isPro
+      />,
+    );
+
+    expect(markup).toContain("업그레이드가 취소되었어요");
+    expect(markup).toContain("현재 결제 주기(2026. 10. 9.)까지 Pro를 이용할 수 있어요");
+    expect(markup).toContain('href="/api/polar/portal"');
+  });
+
   it.each([
     ["file_too_large", "파일이 4MB를 넘습니다."],
     ["empty_file", "파일에 거래 내역이 없습니다."],

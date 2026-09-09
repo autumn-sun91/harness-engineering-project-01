@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { signOut } from "../../login/actions";
+import { syncSubscriptionFromCheckout } from "../../../lib/billing/checkout-sync";
+import { isProSubscription } from "../../../lib/billing/subscription";
 import DashboardClient from "../../../components/dashboard/dashboard-client";
 import { createServerSupabaseClient } from "../../../services/supabase/server";
 import type { UploadReport } from "../../../types";
@@ -65,10 +67,42 @@ function isReportAvailable(status: DashboardUploadStatus): boolean {
   return status === "completed" || status === "partial";
 }
 
+function subscriptionFromRow(row: Record<string, unknown> | null, userId: string) {
+  if (!row) {
+    return null;
+  }
+  const plan = row.plan === "pro" ? "pro" : "free";
+  const polarStatus = typeof row.polar_status === "string" ? row.polar_status : null;
+  const currentPeriodEnd = typeof row.current_period_end === "string" ? row.current_period_end : null;
+  const cancelAtPeriodEnd = row.cancel_at_period_end === true;
+  return {
+    userId,
+    plan,
+    polarStatus,
+    cancelAtPeriodEnd,
+    currentPeriodEnd,
+  } as const;
+}
+
+function formatPeriodEnd(value: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeZone: "Asia/Seoul",
+  }).format(date);
+}
+
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ uploadId?: string | string[] }>;
+  searchParams?: Promise<{
+    uploadId?: string | string[];
+    checkout?: string | string[];
+    checkout_id?: string | string[];
+  }>;
 }) {
   const supabase = await createServerSupabaseClient();
   const {
@@ -78,6 +112,38 @@ export default async function DashboardPage({
   if (!user) {
     redirect("/login?next=%2Fdashboard");
   }
+
+  const params = searchParams ? await searchParams : {};
+  const checkoutStatus = typeof params.checkout === "string" ? params.checkout : null;
+  const checkoutId = typeof params.checkout_id === "string" ? params.checkout_id : null;
+  if (checkoutStatus === "success" && checkoutId) {
+    try {
+      await syncSubscriptionFromCheckout({
+        checkoutId,
+        userId: user.id,
+        supabase,
+      });
+    } catch {
+      // The webhook remains the durable backup path if the immediate sync fails.
+    }
+  }
+
+  const { data: subscriptionData } = await supabase
+    .from("subscriptions")
+    .select("plan,polar_status,cancel_at_period_end,current_period_end")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const subscriptionRow = typeof subscriptionData === "object" && subscriptionData !== null
+    ? subscriptionData as Record<string, unknown>
+    : null;
+  const subscription = subscriptionFromRow(subscriptionRow, user.id);
+  const isPro = subscription ? isProSubscription(subscription) : false;
+  const subscriptionNotice = subscription
+    && isPro
+    && subscription.cancelAtPeriodEnd
+    && subscription.currentPeriodEnd
+    ? `현재 결제 주기(${formatPeriodEnd(subscription.currentPeriodEnd)})까지 Pro를 이용할 수 있어요`
+    : null;
 
   const { data } = await supabase
     .from("csv_uploads")
@@ -89,7 +155,6 @@ export default async function DashboardPage({
     ? rawData.filter((row): row is MetadataRow => typeof row === "object" && row !== null)
     : [];
   const uploads = rows.map(toDashboardUpload).filter((upload) => upload.id.length > 0);
-  const params = searchParams ? await searchParams : {};
   const requestedUploadId = typeof params.uploadId === "string" ? params.uploadId : null;
   const selectedUpload = (requestedUploadId ? uploads.find((upload) => upload.id === requestedUploadId) : null) ?? uploads[0] ?? null;
   let report: UploadReport | null = null;
@@ -106,6 +171,9 @@ export default async function DashboardPage({
       initialUploads={uploads}
       initialReport={report}
       initialUploadId={selectedUpload?.id ?? null}
+      checkoutNotice={checkoutStatus === "cancelled" ? "업그레이드가 취소되었어요" : null}
+      subscriptionNotice={subscriptionNotice}
+      isPro={isPro}
       logoutAction={signOut}
     />
   );

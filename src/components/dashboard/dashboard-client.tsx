@@ -13,6 +13,9 @@ interface DashboardClientProps {
   initialUploads: DashboardUpload[];
   initialReport: UploadReport | null;
   initialUploadId?: string | null;
+  checkoutNotice?: string | null;
+  subscriptionNotice?: string | null;
+  isPro?: boolean;
   logoutAction?: () => Promise<void>;
 }
 
@@ -39,7 +42,9 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <p className="mt-3 text-sm leading-6 text-[var(--color-body)]">전체 기간의 소비 흐름과 모든 인사이트를 확인할 수 있습니다.</p>
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" onClick={onClose} className="h-11 rounded-full border border-[var(--color-hairline)] px-5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">닫기</button>
-          <a href="/dashboard?upgrade=1" className="inline-flex h-11 items-center rounded-full bg-[var(--color-primary)] px-5 text-sm font-semibold text-white hover:bg-[var(--color-primary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">업그레이드</a>
+          <form action="/api/polar/checkout" method="post">
+            <button type="submit" className="inline-flex h-11 items-center rounded-full bg-[var(--color-primary)] px-5 text-sm font-semibold text-white hover:bg-[var(--color-primary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">업그레이드</button>
+          </form>
         </div>
       </div>
     </div>
@@ -73,7 +78,7 @@ function HistoryList({ uploads, selectedUploadId }: { uploads: DashboardUpload[]
   );
 }
 
-export default function DashboardClient({ initialUploads, initialReport, initialUploadId = null, logoutAction }: DashboardClientProps) {
+export default function DashboardClient({ initialUploads, initialReport, initialUploadId = null, checkoutNotice = null, subscriptionNotice = null, isPro = false, logoutAction }: DashboardClientProps) {
   const [uploads, setUploads] = useState(initialUploads);
   const [selectedUploadId, setSelectedUploadId] = useState(initialUploadId ?? initialUploads[0]?.id ?? null);
   const [report, setReport] = useState(initialReport);
@@ -119,10 +124,20 @@ export default function DashboardClient({ initialUploads, initialReport, initial
       <div className="mx-auto w-full max-w-[1200px]">
         <header className="flex h-16 items-center justify-between border-b border-[var(--color-hairline-soft)]">
           <Link href="/dashboard" className="font-display text-2xl tracking-[-0.04em] text-[var(--color-primary)]">TxAnalyzer</Link>
-          <form action={logoutAction}>
-            <button type="submit" className="rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">로그아웃</button>
-          </form>
+          <div className="flex items-center gap-4">
+            {isPro && <a href="/api/polar/portal" className="text-sm font-medium text-[var(--color-body)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">결제 관리</a>}
+            <form action={logoutAction}>
+              <button type="submit" className="rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">로그아웃</button>
+            </form>
+          </div>
         </header>
+
+        {(checkoutNotice || subscriptionNotice) && (
+          <div className="space-y-2 pt-6" role="status">
+            {checkoutNotice && <p className="text-sm text-[var(--color-body)]">{checkoutNotice}</p>}
+            {subscriptionNotice && <p className="text-sm text-[var(--color-body)]">{subscriptionNotice}</p>}
+          </div>
+        )}
 
         <section className="py-12 sm:py-16">
           <p className="font-mono-ui text-xs tracking-[0.14em] text-[var(--color-muted)]">대시보드</p>

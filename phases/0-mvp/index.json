@@ -93,7 +93,10 @@
     {
       "step": 11,
       "name": "billing",
-      "status": "pending"
+      "status": "completed",
+      "summary": "Polar 공식 SDK 기반 체크아웃·고객 포털·서명 검증 webhook과 멱등성·순서 방어, 구독 복귀 동기화 RPC 및 Pro 상태 배너를 구현하고 AC를 통과시켰다.",
+      "started_at": "2026-09-09T17:51:17+0900",
+      "completed_at": "2026-09-09T18:07:18+0900"
     },
     {
       "step": 12,

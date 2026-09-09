@@ -114,12 +114,14 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
           >
             닫기
           </button>
-          <a
-            href="/dashboard?upgrade=1"
-            className="inline-flex h-11 items-center rounded-full bg-[var(--color-primary)] px-5 text-sm font-semibold text-white hover:bg-[var(--color-primary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
-          >
-            업그레이드
-          </a>
+          <form action="/api/polar/checkout" method="post">
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center rounded-full bg-[var(--color-primary)] px-5 text-sm font-semibold text-white hover:bg-[var(--color-primary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+            >
+              업그레이드
+            </button>
+          </form>
         </div>
       </div>
     </div>

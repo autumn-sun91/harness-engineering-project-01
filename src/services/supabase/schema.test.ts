@@ -8,6 +8,10 @@ const migration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/0005_supabase_schema.sql"),
   "utf8",
 );
+const billingMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/0006_billing.sql"),
+  "utf8",
+);
 
 describe("Supabase schema contract", () => {
   it("keeps the database upload statuses aligned with the domain type", () => {
@@ -56,6 +60,13 @@ describe("Supabase schema contract", () => {
     expect(migration).toContain("status <> 'failed'");
     expect(migration).toContain("grant execute on function public.reserve_upload(text, integer) to authenticated");
     expect(migration).toContain("revoke execute on function public.reserve_upload(text, integer) from public");
+  });
+
+  it("keeps authenticated subscription return sync behind an RPC", () => {
+    expect(billingMigration).toContain("create or replace function public.sync_polar_subscription");
+    expect(billingMigration).toContain("auth.uid()");
+    expect(billingMigration).toContain("grant execute on function public.sync_polar_subscription");
+    expect(billingMigration).toContain("revoke all on function public.sync_polar_subscription");
   });
 
   it("keeps the transaction shape compatible with the domain type", () => {
