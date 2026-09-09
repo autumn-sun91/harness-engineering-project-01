@@ -390,9 +390,10 @@ MVP 제외: 원본 재다운로드·재분석, PDF 내보내기, 수동 컬럼 �
 
 - `docs/USER_JOURNEY.md` 신규: 전체 여정 flowchart, upload stateDiagram, billing sequenceDiagram.
 - `docs/ARCHITECTURE.md`: dual-scope payload, security-definer report RPC, `after()` 처리, 원본 비보관, 4테이블/API 계약.
-- `docs/PRD.md`: Free 5/Pro 30, recent12m 정의, 티저, 원본 비보관, 법적 고지.
+- `docs/PRD.md`: Free 5/Pro 30, recent12m 정의, 티저, 원본 비보관, 법적 고지. 디자인 섹션은 `DESIGN.md`를 가리킨다.
+- `docs/DESIGN.md` 신규: finsight-design 스킬 기반 시각 언어. 토큰(색·타입·간격), 화면별 표면, 컴포넌트 3분류, 금액 표기, 잠금 표현, 차트, 상태·에러 문구, 한국어 카피 규칙. 라이트 캔버스 + 포인트 컬러 `#0052ff` 하나.
 - `docs/ADR.md`:
-  - ADR-005를 superseded로 표시.
+  - ADR-002 Supabase Storage 제외 (원본 비보관에 따라 파일 스토리지가 불필요).
   - ADR-007 `202 + after() + polling`.
   - ADR-008 업로드별 독립 리포트.
   - ADR-009 집계는 코드·LLM은 해석.
