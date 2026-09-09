@@ -16,7 +16,7 @@
       "status": "completed",
       "summary": "앱 상태를 queued·parsing·analyzing·partial·completed·failed로 통일하고 15개 API 오류 코드와 UI·라우트·분석 타입 참조를 정본화",
       "started_at": "2026-09-09T20:04:38+0900",
-      "completed_at": "2026-09-09T20:10:30+0900"
+      "completed_at": "2026-09-09T20:11:29+0900"
     }
   ],
   "created_at": "2026-09-09T19:46:37+0900"
