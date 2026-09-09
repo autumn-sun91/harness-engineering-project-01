@@ -72,7 +72,7 @@
       "status": "completed",
       "summary": "사용자 토큰 기반 저장소와 processUpload를 구현해 queued→parsing→analyzing→completed/partial/failed 흐름, dual-scope 집계·해석, 분류 폴백, 240초 deadline, 원본 비보관을 테스트했다.",
       "started_at": "2026-09-09T17:14:40+0900",
-      "completed_at": "2026-09-09T17:25:11+0900"
+      "completed_at": "2026-09-09T17:27:19+0900"
     },
     {
       "step": 9,
