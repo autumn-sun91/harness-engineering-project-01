@@ -126,6 +126,7 @@ export default function DashboardClient({ initialUploads, initialReport, initial
           <Link href="/dashboard" className="font-display text-2xl tracking-[-0.04em] text-[var(--color-primary)]">TxAnalyzer</Link>
           <div className="flex items-center gap-4">
             {isPro && <a href="/api/polar/portal" className="text-sm font-medium text-[var(--color-body)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">결제 관리</a>}
+            <Link href="/settings" className="text-sm font-medium text-[var(--color-body)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">설정</Link>
             <form action={logoutAction}>
               <button type="submit" className="rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">로그아웃</button>
             </form>

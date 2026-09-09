@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   get: vi.fn(),
   subscriptionGet: vi.fn(),
+  subscriptionRevoke: vi.fn(),
   customerSessionCreate: vi.fn(),
   validateEvent: vi.fn(),
 }));
@@ -13,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@polar-sh/sdk", () => ({
   Polar: class {
     checkouts = { create: mocks.create, get: mocks.get };
-    subscriptions = { get: mocks.subscriptionGet };
+    subscriptions = { get: mocks.subscriptionGet, revoke: mocks.subscriptionRevoke };
     customerSessions = { create: mocks.customerSessionCreate };
   },
 }));
@@ -22,6 +23,7 @@ vi.mock("@polar-sh/sdk/webhooks", () => ({
 }));
 
 import {
+  cancelPolarSubscription,
   createCustomerPortalSession,
   createPolarCheckout,
   verifyPolarWebhook,
@@ -68,5 +70,19 @@ describe("Polar service wrapper", () => {
       externalCustomerId: "user-1",
       returnUrl: "http://localhost:3000/dashboard",
     });
+  });
+
+  it("revokes a Polar subscription and treats an already-canceled subscription as complete", async () => {
+    process.env.POLAR_ACCESS_TOKEN = "server-token";
+    process.env.POLAR_SERVER = "sandbox";
+
+    await cancelPolarSubscription("subscription-1");
+
+    expect(mocks.subscriptionRevoke).toHaveBeenCalledWith({ id: "subscription-1" });
+
+    mocks.subscriptionRevoke.mockRejectedValueOnce(
+      Object.assign(new Error("already canceled"), { name: "AlreadyCanceledSubscription" }),
+    );
+    await expect(cancelPolarSubscription("subscription-1")).resolves.toBeUndefined();
   });
 });

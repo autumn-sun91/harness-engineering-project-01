@@ -101,7 +101,10 @@
     {
       "step": 12,
       "name": "account-settings",
-      "status": "pending"
+      "status": "completed",
+      "summary": "설정 화면과 Pro 포털·Free 업그레이드·로그아웃, 확인 문구 기반 계정 삭제와 Polar 취소·사용자별 순차 삭제를 구현하고 AC를 통과시켰다.",
+      "started_at": "2026-09-09T18:08:26+0900",
+      "completed_at": "2026-09-09T18:15:44+0900"
     },
     {
       "step": 13,

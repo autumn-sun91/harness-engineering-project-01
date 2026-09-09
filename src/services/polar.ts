@@ -71,6 +71,36 @@ export async function getPolarSubscription(subscriptionId: string): Promise<Pola
   return await createPolarClient().subscriptions.get({ id: subscriptionId }) as unknown as PolarSubscriptionResult;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isAlreadyCanceledSubscriptionError(error: unknown): boolean {
+  if (!isRecord(error)) {
+    return false;
+  }
+
+  const nested = isRecord(error.data$) ? error.data$ : null;
+  return error.name === "AlreadyCanceledSubscription"
+    || error.error === "AlreadyCanceledSubscription"
+    || nested?.error === "AlreadyCanceledSubscription";
+}
+
+/**
+ * Revokes the subscription immediately as part of account deletion.
+ * Polar's already-canceled response is a successful retry outcome.
+ */
+export async function cancelPolarSubscription(subscriptionId: string): Promise<void> {
+  try {
+    await createPolarClient().subscriptions.revoke({ id: subscriptionId });
+  } catch (error) {
+    if (isAlreadyCanceledSubscriptionError(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
 export async function createCustomerPortalSession(userId: string, returnUrl: string): Promise<{ customerPortalUrl: string }> {
   const session = await createPolarClient().customerSessions.create({
     externalCustomerId: userId,
