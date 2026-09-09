@@ -64,7 +64,7 @@
       "status": "completed",
       "summary": "환경변수 모델·Structured Outputs·Zod 검증을 사용하는 Claude 매핑·가맹점 분류·scope 해석 계층과 모킹 테스트, 24건 평가 fixture를 추가했다. 평가 fixture의 카테고리 정답은 실제 명세서를 아는 사람의 검수가 필요하다.",
       "started_at": "2026-09-09T17:00:03+0900",
-      "completed_at": "2026-09-09T17:12:01+0900"
+      "completed_at": "2026-09-09T17:14:40+0900"
     },
     {
       "step": 8,
