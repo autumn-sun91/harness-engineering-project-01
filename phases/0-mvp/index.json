@@ -48,7 +48,7 @@
       "status": "completed",
       "summary": "supabase/migrations/0005_supabase_schema.sql에 4테이블·RLS·인덱스·원자적 reserve_upload()·신규 사용자 free 구독 트리거를 추가하고 createBrowserSupabaseClient, createServerSupabaseClient, server-only 보호가 적용된 createServiceRoleSupabaseClient를 분리했다.",
       "started_at": "2026-09-09T16:44:05+0900",
-      "completed_at": "2026-09-09T16:51:02+0900"
+      "completed_at": "2026-09-09T16:51:57+0900"
     },
     {
       "step": 6,
