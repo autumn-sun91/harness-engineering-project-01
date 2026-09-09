@@ -2,6 +2,11 @@
   "phases": [
     {
       "dir": "0-mvp",
+      "status": "blocked",
+      "blocked_at": "2026-09-09T18:30:48+0900"
+    },
+    {
+      "dir": "1-db-contract",
       "status": "pending"
     }
   ]

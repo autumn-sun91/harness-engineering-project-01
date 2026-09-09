@@ -179,6 +179,9 @@ class StepExecutor:
         agents_md = ROOT / "AGENTS.md"
         if agents_md.exists():
             sections.append(f"## 프로젝트 규칙 (AGENTS.md)\n\n{agents_md.read_text()}")
+        plan_md = ROOT / "plan.md"
+        if plan_md.exists():
+            sections.append(f"## 구현 계약 (plan.md)\n\n{plan_md.read_text()}")
         docs_dir = ROOT / "docs"
         if docs_dir.is_dir():
             for doc in sorted(docs_dir.glob("*.md")):

@@ -1,0 +1,16 @@
+{
+  "project": "TxAnalyzer",
+  "phase": "1-db-contract",
+  "steps": [
+    {
+      "step": 0,
+      "name": "db-contract-rpcs",
+      "status": "pending"
+    },
+    {
+      "step": 1,
+      "name": "status-vocabulary",
+      "status": "pending"
+    }
+  ]
+}
