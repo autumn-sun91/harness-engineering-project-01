@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getSafeRedirectPath } from "../../lib/auth/redirect";
@@ -64,6 +65,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Google로 로그인
           </button>
         </form>
+        <p className="mt-6 text-xs leading-5 text-[var(--color-muted)]">
+          거래 데이터가 분석을 위해 Anthropic API로 전송됩니다. 전송 범위와 보관 방식은 <Link href="/privacy" className="text-[var(--color-body)] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]">개인정보 처리방침</Link>에서 확인할 수 있습니다.
+        </p>
       </section>
     </main>
   );
