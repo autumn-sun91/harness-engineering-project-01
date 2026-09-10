@@ -1,6 +1,6 @@
 # 디자인
 
-이 문서는 **시각 언어**만 다룬다. 데이터 경계·게이팅 규칙은 [plan.md](../plan.md), 화면 전이는 [USER_JOURNEY.md](./USER_JOURNEY.md), 컴포넌트 배치 규칙은 [ARCHITECTURE.md](./ARCHITECTURE.md)를 따른다.
+이 문서는 **시각 언어**만 다룬다. 데이터 경계·게이팅 규칙은 [plan.md](../plan.md), 화면 전이는 [USER_JOURNEY.md](./USER_JOURNEY.md), 컴포넌트 배치 규칙은 [ARCHITECTURE.md](./ARCHITECTURE.md), 관문별 전진·전환 설계는 [UX_GUIDE.md](./UX_GUIDE.md)를 따른다.
 
 ## 1. 출처
 
